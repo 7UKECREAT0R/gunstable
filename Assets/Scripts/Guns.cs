@@ -3,5 +3,5 @@
 /// </summary>
 public static class Guns
 {
-        
+    
 }

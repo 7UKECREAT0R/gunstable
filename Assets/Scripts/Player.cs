@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : Character
 {
@@ -7,7 +8,7 @@ public class Player : Character
     
     private Animator animator;
     private bool isMoving;
-
+    
     private LookDirection lastDirection;
     private bool lastIsMoving;
 
@@ -35,16 +36,16 @@ public class Player : Character
             "playerStand" + this.direction;
         this.animator.Play(stateName);
     }
-    public override bool DropsWeapon => false;
     
     
     public override void Die()
     {
-        throw new System.NotImplementedException();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     public override void AfterDamage(int damageAmount, bool died)
     {
-        throw new System.NotImplementedException();
+        CameraEffects effects = CameraEffects.SINGLETON;
+        effects.StartShake(new Shake(1.0f, 30.0f, 0.5f));
     }
 
     public override void Start()

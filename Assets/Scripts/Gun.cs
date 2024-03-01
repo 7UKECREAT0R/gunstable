@@ -5,6 +5,15 @@
 public readonly struct Gun
 {
     /// <summary>
+    /// The rarity of the gun.
+    /// </summary>
+    public readonly RarityType rarity;
+    /// <summary>
+    /// The name of the gun.
+    /// </summary>
+    public readonly string name;
+    
+    /// <summary>
     /// Fire while the mouse is held?
     /// </summary>
     public readonly bool isAuto;
@@ -41,6 +50,8 @@ public readonly struct Gun
     /// <summary>
     /// Create a new Gun definition.
     /// </summary>
+    /// <param name="rarity">The rarity of the gun.</param>
+    /// <param name="name">The name of the gun.</param>
     /// <param name="isAuto">Fire while the mouse is held?</param>
     /// <param name="isHitscan">Does weapon use ray instead of firing projectiles?</param>
     /// <param name="cooldown">Cooldown between each shot, in seconds.</param>
@@ -49,9 +60,12 @@ public readonly struct Gun
     /// <param name="projectileSpeed">The speed of the fired projectiles, if not hitscan.</param>
     /// <param name="damage">The damage of each projectile, or the hitscan shot if enabled.</param>
     /// <param name="sprite">The sprite of the weapon.</param>
-    public Gun(bool isAuto, bool isHitscan, float cooldown, float inaccuracy, int projectileCount, float projectileSpeed,
+    public Gun(RarityType rarity, string name, bool isAuto, bool isHitscan,
+        float cooldown, float inaccuracy, int projectileCount, float projectileSpeed,
         int damage, string sprite)
     {
+        this.rarity = rarity;
+        this.name = name;
         this.isAuto = isAuto;
         this.isHitscan = isHitscan;
         this.cooldown = cooldown;

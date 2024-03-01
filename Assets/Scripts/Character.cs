@@ -38,8 +38,6 @@ public abstract class Character : MonoBehaviour
     
     public bool HasGun => this.gun.HasValue;
     
-    public abstract bool DropsWeapon { get; }
-
     protected Gun? gun = null;
     protected LookDirection direction;
     protected SpriteRenderer spriteRenderer;

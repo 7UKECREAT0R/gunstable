@@ -7,14 +7,43 @@ using Random = UnityEngine.Random;
 public class CameraEffects : MonoBehaviour
 {
     public static CameraEffects SINGLETON;
+
+    public GameObject gunPopupPrefab;
+    public GameObject luckyItemPopupPrefab;
+    public GameObject actionTextPrefab;
+    public Material selectionMaterial;
+    public Material[] rarityMaterials;
+    /// <summary>
+    /// Returns the material for the given rarity. Will outline the
+    /// sprite with the color associated with the rarity.
+    /// </summary>
+    /// <param name="rarity">The rarity to get the material for.</param>
+    /// <returns>The material.</returns>
+    public Material GetMaterialForRarity(RarityType rarity)
+    {
+        return this.rarityMaterials[(int)rarity];
+    }
     
     private readonly List<Shake> cameraShakes = new();
+    /// <summary>
+    /// Begins the given <see cref="Shake"/>.
+    /// </summary>
+    /// <param name="shake"></param>
     public void StartShake(Shake shake)
     {
         Debug.Assert(shake != null, "Shake was null.");
         this.cameraShakes.Add(shake);
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
+    public void CreateActionText(Vector2 position, string text, Color color, float duration, float speed = 1.0f)
+    {
+        GameObject spawnedActionText = Instantiate(this.actionTextPrefab);
+        spawnedActionText.transform.position = position;
+        ActionText actionText = spawnedActionText.GetComponent<ActionText>();
+        actionText.RunWith(text, color, duration, speed);
+    }
+    
     private void Start()
     {
         SINGLETON = this;
@@ -34,6 +63,8 @@ public class CameraEffects : MonoBehaviour
             change.localPosition = position;
         }
     }
+    
+    
 }
 
 public class Shake
