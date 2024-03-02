@@ -5,16 +5,14 @@ using UnityEngine.SceneManagement;
 public class Player : Character
 {
     public float movementSpeed = 1.0f;
-    public GameObject gunItemPrefab;
-    public GameObject luckyItemPrefab;
-    
+
     private Animator animator;
     private bool isMoving;
-    
+
     private LookDirection lastDirection;
     private bool lastIsMoving;
     private Camera cam;
-
+    
     /// <summary>
     /// Look towards the given direction. Returns the un-normalized direction from the player to the given location.
     /// </summary>
@@ -117,6 +115,7 @@ public class Player : Character
 
         if (Input.GetMouseButtonDown(0))
         {
+            CameraEffects.SINGLETON.CreateShellParticle(this.gunRenderer.transform.position);
             this.GunDistanceOffset -= 0.05F;
         }
     }

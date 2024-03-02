@@ -8,6 +8,7 @@ public class CameraEffects : MonoBehaviour
 {
     public static CameraEffects SINGLETON;
 
+    public GameObject shellParticlePrefab;
     public GameObject gunPopupPrefab;
     public GameObject luckyItemPopupPrefab;
     public GameObject actionTextPrefab;
@@ -42,6 +43,10 @@ public class CameraEffects : MonoBehaviour
         spawnedActionText.transform.position = position;
         ActionText actionText = spawnedActionText.GetComponent<ActionText>();
         actionText.RunWith(text, color, duration, speed);
+    }
+    public void CreateShellParticle(Vector2 position)
+    {
+        Instantiate(this.shellParticlePrefab, (Vector3)position, Quaternion.identity);
     }
     
     private void Start()

@@ -48,6 +48,7 @@
     <Compile Include="Assets\Scripts\Gun.cs" />
     <Compile Include="Assets\Scripts\Character.cs" />
     <Compile Include="Assets\Scripts\Guns.cs" />
+    <Compile Include="Assets\Scripts\Projectile\Projectile.cs" />
     <Compile Include="Assets\Scripts\CameraEffects.cs" />
     <Compile Include="Assets\Scripts\UI\LuckyObjectPopup.cs" />
     <Compile Include="Assets\Scripts\ActionText.cs" />

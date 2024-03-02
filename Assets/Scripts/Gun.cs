@@ -61,6 +61,10 @@ public readonly struct Gun
     /// The offset (+ is forward) the gun should be located relative to the player.
     /// </summary>
     public readonly float locationOffset;
+    /// <summary>
+    /// The distance to kick the player and gun back on shoot, in pixels.
+    /// </summary>
+    public readonly float kickback;
 
     /// <summary>
     /// Create a new Gun definition.
@@ -77,9 +81,10 @@ public readonly struct Gun
     /// <param name="sprite">The sprite of the weapon.</param>
     /// <param name="shootPointOffset">The offset (+ is forward) the barrel is located on this gun sprite.</param>
     /// <param name="locationOffset">The offset (+ is forward) the gun should be located relative to the player.</param>
+    /// <param name="kickback">The distance to kick the player and gun back on shoot.</param>
     public Gun(RarityType rarity, string name, bool isAuto, bool isHitscan,
         float cooldown, float inaccuracy, int projectileCount, float projectileSpeed, int damage,
-        string sprite, float shootPointOffset, float locationOffset)
+        string sprite, float shootPointOffset, float locationOffset, float kickback)
     {
         this.rarity = rarity;
         this.name = name;
@@ -93,5 +98,6 @@ public readonly struct Gun
         this.sprite = sprite;
         this.shootPointOffset = shootPointOffset;
         this.locationOffset = locationOffset;
+        this.kickback = kickback;
     }
 }

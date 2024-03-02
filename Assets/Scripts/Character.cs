@@ -62,6 +62,12 @@ public abstract class Character : MonoBehaviour
     }
 
     private const float gunOffsetLerp = 16.0F;
+    private const float velocityLerp = 10.0F;
+    
+    public GameObject gunItemPrefab;
+    public GameObject luckyItemPrefab;
+    
+    private float velocityX, velocityY;
     private Gun? gun = null;
     protected LookDirection direction;
     protected SpriteRenderer spriteRenderer;
@@ -85,6 +91,7 @@ public abstract class Character : MonoBehaviour
         get => this.gunPointAngle;
         set
         {
+            bool behind = value > 0F;
             bool flip = value is < -90F or > 90F;
             this.gunPointAngle = value;
             this.gunRenderer.transform.localScale = new Vector3(flip ? -1F : 1F, 1F, 1F);
@@ -96,6 +103,7 @@ public abstract class Character : MonoBehaviour
                 value = 180F + value;
 
             this.gunRenderer.transform.localRotation = Quaternion.Euler(0F, 0F, value);
+            this.gunRenderer.sortingOrder = behind ? 9 : 11;
         }
     }
 
@@ -119,18 +127,29 @@ public abstract class Character : MonoBehaviour
             return;
         }
         
-        Vector2 location = PositionAlongGunDirection(distanceTotal);
+        Vector2 location = LocalPositionAlongGunDirection(distanceTotal);
         this.gunRenderer.transform.localPosition = location;
     }
     /// <summary>
-    /// Returns the position along the angle the gun is pointing.
+    /// Returns the position along the angle the gun is pointing, in local space.
     /// </summary>
     /// <param name="offset">Positive is forwards, negative is backwards.</param>
     /// <returns>The calculated position.</returns>
-    private Vector2 PositionAlongGunDirection(float offset)
+    private Vector2 LocalPositionAlongGunDirection(float offset)
     {
         float radians = this.gunPointAngle / (180F / Mathf.PI);
         return new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * offset;
+    }
+    /// <summary>
+    /// Returns the position along the angle the gun is pointing, in global space.
+    /// </summary>
+    /// <param name="offset">Positive is forwards, negative is backwards.</param>
+    /// <returns>The calculated position.</returns>
+    private Vector2 GlobalPositionAlongGunDirection(float offset)
+    {
+        float radians = this.gunPointAngle / (180F / Mathf.PI);
+        Vector2 vector = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * offset;
+        return vector + (Vector2)this.transform.position;
     }
     /// <summary>
     /// Deal damage to this character, possibly causing death or serious injury.
@@ -151,7 +170,6 @@ public abstract class Character : MonoBehaviour
         if (dead)
             OnDeath();
     }
-
     public void SetHP(int hp)
     {
         this.maxHealth = hp;
@@ -159,6 +177,50 @@ public abstract class Character : MonoBehaviour
         int oldHealth = this.health;
         this.health = hp;
         OnHealthChanged(oldHealth, hp);
+    }
+
+    public void ImpulseVelocity(Vector2 xy) => ImpulseVelocity(xy.x, xy.y);
+    public void ImpulseVelocity(float x, float y)
+    {
+        this.velocityX += x;
+        this.velocityY += y;
+    }
+    public void SetVelocity(Vector2 xy) => SetVelocity(xy.x, xy.y);
+    public void SetVelocity(float x, float y)
+    {
+        this.velocityX = x;
+        this.velocityY = y;
+    }
+
+    /// <summary>
+    /// Fires the currently equipped gun, if any, in the direction indicated by <see cref="gunPointAngle"/>.
+    /// </summary>
+    protected void ShootPointAngle(float angle)
+    {
+        if (!this.gun.HasValue)
+            return;
+
+        Gun gun = this.gun.Value;
+        float shootPointOffset = gun.locationOffset + gun.shootPointOffset;
+        
+        // get the shoot point
+        Vector2 shootPoint = GlobalPositionAlongGunDirection(shootPointOffset);
+        // TODO: muzzle flash, and spawn bullet projectile inline with gun rules
+        
+        // do knockback
+        float kickback = -(gun.kickback / 100F);
+        Vector2 knockbackVector = LocalPositionAlongGunDirection(kickback);
+        ImpulseVelocity(knockbackVector);
+        this.GunDistanceOffset = kickback;
+    }
+    /// <summary>
+    /// Fires the currently equipped gun, if any, at the given direction.
+    /// </summary>
+    /// <param name="direction">The direction to fire in.</param>
+    protected void Shoot(Vector2 direction)
+    {
+        float angle = Vector2.SignedAngle(Vector2.right, direction);
+        ShootPointAngle(angle);
     }
     
     /// <summary>
@@ -189,8 +251,13 @@ public abstract class Character : MonoBehaviour
 
     public virtual void Update()
     {
-        this.gunDistanceOffset = Mathf.Lerp(this.gunDistanceOffset, 0.0F, gunOffsetLerp * Time.deltaTime);
+        float deltaTime = Time.deltaTime;
+        this.gunDistanceOffset = Mathf.Lerp(this.gunDistanceOffset, 0.0F, gunOffsetLerp * deltaTime);
+        this.velocityX = Mathf.Lerp(this.velocityX, 0.0F, velocityLerp * deltaTime);
+        this.velocityY = Mathf.Lerp(this.velocityY, 0.0F, velocityLerp * deltaTime);
+        
         RepositionGun();
+        this.transform.Translate(new Vector3(this.velocityX * deltaTime, this.velocityY * deltaTime));
     }
     public virtual void Start()
     {
