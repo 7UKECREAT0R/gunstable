@@ -5,12 +5,15 @@ using UnityEngine.SceneManagement;
 public class Player : Character
 {
     public float movementSpeed = 1.0f;
+    public GameObject gunItemPrefab;
+    public GameObject luckyItemPrefab;
     
     private Animator animator;
     private bool isMoving;
     
     private LookDirection lastDirection;
     private bool lastIsMoving;
+    private Camera cam;
 
     /// <summary>
     /// Look towards the given direction. Returns the un-normalized direction from the player to the given location.
@@ -37,24 +40,37 @@ public class Player : Character
         this.animator.Play(stateName);
     }
     
-    
-    public override void Die()
+    protected override void OnDeath()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
-    public override void AfterDamage(int damageAmount, bool died)
+    protected override void AfterDamage(int damageAmount, bool died)
     {
         CameraEffects effects = CameraEffects.SINGLETON;
         effects.StartShake(new Shake(1.0f, 30.0f, 0.5f));
+    }
+    protected override void OnGunUnequipped()
+    {
+        throw new NotImplementedException();
+    }
+    protected override void OnGunEquipped(Gun gun)
+    {
+        throw new NotImplementedException();
+    }
+    protected override void OnHealthChanged(int oldValue, int newValue)
+    {
+        throw new NotImplementedException();
     }
 
     public override void Start()
     {
         base.Start();
+        this.cam = Camera.main;
         this.animator = GetComponent<Animator>();
     }
-    private void Update()
+    public override void Update()
     {
+        base.Update();
         float deltaTime = Time.deltaTime;
 
         Vector2 movementVector = Vector2.zero;
@@ -93,5 +109,15 @@ public class Player : Character
             UpdateAnimator();
         
         this.lastIsMoving = this.isMoving;
+        
+        // look direction
+        Vector2 mousePosition = this.cam.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 facing = mousePosition - (Vector2)this.transform.position;
+        this.GunPointAngle = Vector2.SignedAngle(Vector2.right, facing);
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            this.GunDistanceOffset -= 0.05F;
+        }
     }
 }

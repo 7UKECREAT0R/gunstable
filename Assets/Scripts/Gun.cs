@@ -1,9 +1,16 @@
 ﻿
+using UnityEngine;
+
 /// <summary>
 /// Represents a weapon that can be held.
 /// </summary>
 public readonly struct Gun
 {
+    public Sprite LoadSprite()
+    {
+        return Resources.LoadAll<Sprite>("Sprites/Gun/" + this.sprite)[0];
+    }
+    
     /// <summary>
     /// The rarity of the gun.
     /// </summary>
@@ -45,7 +52,15 @@ public readonly struct Gun
     /// <summary>
     /// The sprite of the weapon.
     /// </summary>
-    public readonly string sprite;
+    private readonly string sprite;
+    /// <summary>
+    /// The offset (+ is forward) the barrel is located on this gun sprite.
+    /// </summary>
+    public readonly float shootPointOffset;
+    /// <summary>
+    /// The offset (+ is forward) the gun should be located relative to the player.
+    /// </summary>
+    public readonly float locationOffset;
 
     /// <summary>
     /// Create a new Gun definition.
@@ -60,9 +75,11 @@ public readonly struct Gun
     /// <param name="projectileSpeed">The speed of the fired projectiles, if not hitscan.</param>
     /// <param name="damage">The damage of each projectile, or the hitscan shot if enabled.</param>
     /// <param name="sprite">The sprite of the weapon.</param>
+    /// <param name="shootPointOffset">The offset (+ is forward) the barrel is located on this gun sprite.</param>
+    /// <param name="locationOffset">The offset (+ is forward) the gun should be located relative to the player.</param>
     public Gun(RarityType rarity, string name, bool isAuto, bool isHitscan,
-        float cooldown, float inaccuracy, int projectileCount, float projectileSpeed,
-        int damage, string sprite)
+        float cooldown, float inaccuracy, int projectileCount, float projectileSpeed, int damage,
+        string sprite, float shootPointOffset, float locationOffset)
     {
         this.rarity = rarity;
         this.name = name;
@@ -74,5 +91,7 @@ public readonly struct Gun
         this.projectileSpeed = projectileSpeed;
         this.damage = damage;
         this.sprite = sprite;
+        this.shootPointOffset = shootPointOffset;
+        this.locationOffset = locationOffset;
     }
 }

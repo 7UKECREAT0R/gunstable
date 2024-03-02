@@ -11,9 +11,9 @@ namespace Items
 
         protected SpriteRenderer spriteRenderer;
         protected Camera cam;
-        
+        protected Player player;
+
         private RarityType type = RarityType.Unremarkable;
-        private Player player;
 
         public void SetRarityType(RarityType type)
         {

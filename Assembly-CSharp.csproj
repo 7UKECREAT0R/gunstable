@@ -53,10 +53,11 @@
     <Compile Include="Assets\Scripts\ActionText.cs" />
     <Compile Include="Assets\Scripts\UI\Popup.cs" />
     <Compile Include="Assets\Scripts\Cursor.cs" />
-    <Compile Include="Assets\Scripts\Items\LuckyGroundItem.cs" />
     <Compile Include="Assets\Scripts\UI\GunPopup.cs" />
+    <Compile Include="Assets\Scripts\Items\LuckyItem.cs" />
     <Compile Include="Assets\Scripts\Game.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\Items\GunItem.cs" />
     <Compile Include="Assets\Scripts\Items\GroundItem.cs" />
     <Compile Include="Assets\Scripts\RarityType.cs" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

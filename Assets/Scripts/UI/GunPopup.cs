@@ -22,10 +22,9 @@ namespace UI
             this.CooldownSeconds = gun.cooldown;
             this.AccuracyPercent = Mathf.RoundToInt((1.0f - gun.inaccuracy) * 100);
         }
-
-        public void SetColor(RarityType rarity) =>
+        private void SetColor(RarityType rarity) =>
             SetColor(Rarity.GetColorForRarity(rarity));
-        public void SetColor(Color color)
+        private void SetColor(Color color)
         {
             this.gunNameDisplay.color = color;
             this.damageDisplay.color = color;

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Items
 {
-    public class LuckyGroundItem : GroundItem
+    public class LuckyItem : GroundItem
     {
         public LuckyObject luckyObject;
         
