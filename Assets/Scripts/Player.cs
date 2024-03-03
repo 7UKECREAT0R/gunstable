@@ -65,6 +65,8 @@ public class Player : Character
         base.Start();
         this.cam = Camera.main;
         this.animator = GetComponent<Animator>();
+
+        this.Gun = Guns.BasicPistol;
     }
     public override void Update()
     {
@@ -111,12 +113,10 @@ public class Player : Character
         // look direction
         Vector2 mousePosition = this.cam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 facing = mousePosition - (Vector2)this.transform.position;
-        this.GunPointAngle = Vector2.SignedAngle(Vector2.right, facing);
+        float angle = Vector2.SignedAngle(Vector2.right, facing);
+        this.GunPointAngle = angle;
 
         if (Input.GetMouseButtonDown(0))
-        {
-            CameraEffects.SINGLETON.CreateShellParticle(this.gunRenderer.transform.position);
-            this.GunDistanceOffset -= 0.05F;
-        }
+            ShootPointAngle(angle);
     }
 }

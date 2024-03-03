@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Shooting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// Represents a generic character in the game.
@@ -47,10 +49,10 @@ public abstract class Character : MonoBehaviour
         get => this.gun;
         set
         {
-            if (!value.HasValue && this.gun.HasValue)
+            if (!value.HasValue && !this.gun.HasValue)
                 return; // don't do anything, no gun already.
-            
-            this.gunRenderer.enabled = this.gun.HasValue;
+
+            this.gunRenderer.enabled = value.HasValue;
             this.gun = value;
 
             if (!value.HasValue)
@@ -63,7 +65,8 @@ public abstract class Character : MonoBehaviour
 
     private const float gunOffsetLerp = 16.0F;
     private const float velocityLerp = 10.0F;
-    
+
+    public GameObject bulletProjectilePrefab;
     public GameObject gunItemPrefab;
     public GameObject luckyItemPrefab;
     
@@ -145,7 +148,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     /// <param name="offset">Positive is forwards, negative is backwards.</param>
     /// <returns>The calculated position.</returns>
-    private Vector2 GlobalPositionAlongGunDirection(float offset)
+    protected Vector2 GlobalPositionAlongGunDirection(float offset)
     {
         float radians = this.gunPointAngle / (180F / Mathf.PI);
         Vector2 vector = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * offset;
@@ -192,6 +195,21 @@ public abstract class Character : MonoBehaviour
         this.velocityY = y;
     }
 
+    private void SpawnBullet(Gun gun, Vector2 position, float angle)
+    {
+        GameObject spawnedBullet = Instantiate(this.bulletProjectilePrefab);
+        spawnedBullet.transform.position = position;
+        spawnedBullet.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+        Debug.Log($"Projectile spawned, angle: {angle}");
+        Projectile projectile = spawnedBullet.GetComponent<Projectile>();
+        projectile.angleOfTravel = angle;
+        projectile.speed = gun.projectileSpeed;
+        projectile.damage = gun.damage;
+        projectile.pierce = 0;
+        projectile.ignoreLayer = this.gameObject.layer;
+    }
+    // ReSharper disable Unity.PerformanceAnalysis
     /// <summary>
     /// Fires the currently equipped gun, if any, in the direction indicated by <see cref="gunPointAngle"/>.
     /// </summary>
@@ -201,11 +219,29 @@ public abstract class Character : MonoBehaviour
             return;
 
         Gun gun = this.gun.Value;
+        float shellOffset = 0.05F + gun.locationOffset;
         float shootPointOffset = gun.locationOffset + gun.shootPointOffset;
+        
+        // spawn shell
+        Vector2 shellPoint = GlobalPositionAlongGunDirection(shellOffset);
+        CameraEffects.SINGLETON.CreateShellParticle(shellPoint);
         
         // get the shoot point
         Vector2 shootPoint = GlobalPositionAlongGunDirection(shootPointOffset);
-        // TODO: muzzle flash, and spawn bullet projectile inline with gun rules
+        
+        if (gun.isHitscan)
+        {
+            throw new NotImplementedException();
+        }
+        else
+        {
+            for (int i = 0; i < gun.projectileCount; i++)
+            {
+                float deviation = Random.Range(-gun.inaccuracy / 2F, gun.inaccuracy / 2F);
+                float deviatedAngle = angle + deviation;
+                SpawnBullet(gun, shootPoint, deviatedAngle);
+            }
+        }
         
         // do knockback
         float kickback = -(gun.kickback / 100F);

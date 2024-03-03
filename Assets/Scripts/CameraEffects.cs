@@ -44,9 +44,11 @@ public class CameraEffects : MonoBehaviour
         ActionText actionText = spawnedActionText.GetComponent<ActionText>();
         actionText.RunWith(text, color, duration, speed);
     }
+    // ReSharper disable Unity.PerformanceAnalysis
     public void CreateShellParticle(Vector2 position)
     {
-        Instantiate(this.shellParticlePrefab, (Vector3)position, Quaternion.identity);
+        GameObject newParticle = Instantiate(this.shellParticlePrefab);
+        newParticle.transform.position = position;
     }
     
     private void Start()

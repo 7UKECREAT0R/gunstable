@@ -1,4 +1,5 @@
 ﻿
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -8,7 +9,10 @@ public readonly struct Gun
 {
     public Sprite LoadSprite()
     {
-        return Resources.LoadAll<Sprite>("Sprites/Gun/" + this.sprite)[0];
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Sprites/Gun/" + this.sprite);
+        if (sprites.Length < 1)
+            throw new Exception($"Gun sprite \"{this.sprite}\" does not exist.");
+        return sprites[0];
     }
     
     /// <summary>
