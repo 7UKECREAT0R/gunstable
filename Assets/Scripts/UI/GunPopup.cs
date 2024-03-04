@@ -18,18 +18,21 @@ namespace UI
         {
             SetColor(gun.rarity);
             this.GunName = gun.name;
-            this.Damage = gun.damage;
-            this.CooldownSeconds = gun.cooldown;
-            this.AccuracyPercent = Mathf.RoundToInt((1.0f - gun.inaccuracy) * 100);
+            this.Damage = gun.Damage;
+            this.CooldownSeconds = gun.Cooldown;
+
+            float normalizedInaccuracy = Mathf.Abs(gun.inaccuracy) / 3.6F;
+            this.AccuracyPercent = Mathf.RoundToInt(100F - normalizedInaccuracy);
         }
         private void SetColor(RarityType rarity) =>
-            SetColor(Rarity.GetColorForRarity(rarity));
+            SetColor(rarity.GetColor());
         private void SetColor(Color color)
         {
             this.gunNameDisplay.color = color;
-            this.damageDisplay.color = color;
-            this.cooldownDisplay.color = color;
-            this.accuracyDisplay.color = color;
+            Color others = Color.white;
+            this.damageDisplay.color = others;
+            this.cooldownDisplay.color = others;
+            this.accuracyDisplay.color = others;
         }
 
         public string GunName
@@ -38,15 +41,15 @@ namespace UI
         }
         public int Damage
         {
-            set => this.gunNameDisplay.text = value.ToString();
+            set => this.damageDisplay.text = value.ToString();
         }
         public float CooldownSeconds
         {
-            set => this.gunNameDisplay.text = value + " SECONDS";
+            set => this.cooldownDisplay.text = value + " SECONDS";
         }
         public int AccuracyPercent
         {
-            set => this.gunNameDisplay.text = value + "%";
+            set => this.accuracyDisplay.text = value + "%";
         }
     }
 }

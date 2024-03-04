@@ -46,9 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Gun.cs" />
-    <Compile Include="Assets\Scripts\Character.cs" />
     <Compile Include="Assets\Scripts\Guns.cs" />
     <Compile Include="Assets\Scripts\CameraEffects.cs" />
+    <Compile Include="Assets\Scripts\Characters\Character.cs" />
+    <Compile Include="Assets\Scripts\Shooting\Bullet.cs" />
     <Compile Include="Assets\Scripts\UI\LuckyObjectPopup.cs" />
     <Compile Include="Assets\Scripts\ActionText.cs" />
     <Compile Include="Assets\Scripts\UI\Popup.cs" />
@@ -56,8 +57,9 @@
     <Compile Include="Assets\Scripts\Shooting\Projectile.cs" />
     <Compile Include="Assets\Scripts\UI\GunPopup.cs" />
     <Compile Include="Assets\Scripts\Items\LuckyItem.cs" />
+    <Compile Include="Assets\Scripts\Shooting\ThrownGun.cs" />
     <Compile Include="Assets\Scripts\Game.cs" />
-    <Compile Include="Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\Characters\Player.cs" />
     <Compile Include="Assets\Scripts\Items\GunItem.cs" />
     <Compile Include="Assets\Scripts\Items\GroundItem.cs" />
     <Compile Include="Assets\Scripts\RarityType.cs" />

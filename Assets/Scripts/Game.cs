@@ -5,8 +5,9 @@
 /// </summary>
 public static class Game
 {
-    public const float defaultPickupRange = 0.2f;
-    public const float bulletTimeSlowness = 0.3f;
+    public const float baseInterestTime = 7.5F;
+    public const float defaultPickupRange = 0.2F;
+    public const float bulletTimeSlowness = 0.3F;
 
     private static int luckyClovers;
     private static int luckyRocks;
@@ -18,10 +19,11 @@ public static class Game
     /// Number of rarity rolls the player gets.
     /// </summary>
     public static int RarityRolls => 1 + luckyClovers;
+
     /// <summary>
     /// Multiplier to be combined with the thrown weapon damage.
     /// </summary>
-    public static float ThrownWeaponMultiplier => 1.5f * luckyRocks;
+    public static float ThrownWeaponMultiplier => luckyRocks > 0 ? 1.5F * luckyRocks : 1.0F;
     /// <summary>
     /// The distance the player can click to pickup/dash towards items/guns on the ground.
     /// Also used to dictate when the hover outline appears.
@@ -30,11 +32,11 @@ public static class Game
     /// <summary>
     /// The amount of seconds of bullet-time you get per kill.
     /// </summary>
-    public static float BulletTimePerKill => 0.5f * luckySandbags;
+    public static float BulletTimePerKill => 0.5F * luckySandbags;
     /// <summary>
     /// The bonus multiplier to apply to the player's shooting speed.
     /// </summary>
-    public static float ShootSpeedBonus => 1.0f + (0.2f * luckyRings);
+    public static float ShootSpeedBonus => 1.0F + (0.2F * luckyRings);
 
     /// <summary>
     /// Call this when the player collects a lucky object of the given type.

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 public static class Rarity
 {
@@ -38,7 +40,7 @@ public static class Rarity
         };
     }
 
-    public static Color GetColorForRarity(RarityType rarity)
+    public static Color GetColor(this RarityType rarity)
     {
         return rarity switch
         {
@@ -51,6 +53,42 @@ public static class Rarity
         };
         
         Color RGB(int r, int g, int b) => new(r / 255f, g / 255f, b / 255f);
+    }
+    public static float GetDamageMultiplier(this RarityType rarity)
+    {
+        return rarity switch
+        {
+            RarityType.Unremarkable => 1.0F,
+            RarityType.Cool => 1.1F,
+            RarityType.DoubleTake => 1.25F,
+            RarityType.TripleTake => 1.5F,
+            RarityType.Unbelievable => 2.0F,
+            _ => throw new ArgumentOutOfRangeException(nameof(rarity), rarity, null)
+        };
+    }
+    public static float GetCooldownMultiplier(this RarityType rarity)
+    {
+        return rarity switch
+        {
+            RarityType.Unremarkable => 1.0F - 0.0F,
+            RarityType.Cool => 1.0F - 0.03F,
+            RarityType.DoubleTake => 1.0F - 0.06F,
+            RarityType.TripleTake => 1.0F - 0.1F,
+            RarityType.Unbelievable => 1.0F - 0.25F,
+            _ => throw new ArgumentOutOfRangeException(nameof(rarity), rarity, null)
+        };
+    }
+    public static float GetInterestMultiplier(this RarityType rarity)
+    {
+        return rarity switch
+        {
+            RarityType.Unremarkable => 1.0F,
+            RarityType.Cool => 1.25F,
+            RarityType.DoubleTake => 1.5F,
+            RarityType.TripleTake => 2.0F,
+            RarityType.Unbelievable => 3.5F,
+            _ => throw new ArgumentOutOfRangeException(nameof(rarity), rarity, null)
+        };
     }
 }
 public enum RarityType

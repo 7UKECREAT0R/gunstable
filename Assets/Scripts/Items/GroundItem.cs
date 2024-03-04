@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Characters;
 using UnityEngine;
 
 namespace Items
@@ -15,10 +16,8 @@ namespace Items
 
         private RarityType type = RarityType.Unremarkable;
 
-        public void SetRarityType(RarityType type)
+        protected void SetRarityType(RarityType type)
         {
-            if (type != this.type)
-                SetMaterial(this.hovered);
             this.type = type;
         }
         private void SetHoveredState(bool newHovered)
@@ -53,6 +52,15 @@ namespace Items
             this.spriteRenderer = GetComponent<SpriteRenderer>();
             this.hovered = false;
         }
+
+        private bool firstMaterialSet = false;
+        private void LateUpdate()
+        {
+            if (this.firstMaterialSet)
+                return;
+            this.firstMaterialSet = true;
+            SetMaterial(this.hovered);
+        }
         protected virtual void Update()
         {
             Vector2 mousePosition = this.cam.ScreenToWorldPoint(Input.mousePosition);
@@ -75,9 +83,7 @@ namespace Items
         }
         protected abstract void OnClick();
         
-        // ReSharper disable Unity.PerformanceAnalysis
         protected abstract void OnHoverStart();
-        // ReSharper disable Unity.PerformanceAnalysis
         protected abstract void OnHoverEnd();
     }
 }

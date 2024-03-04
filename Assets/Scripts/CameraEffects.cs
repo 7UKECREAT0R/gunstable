@@ -35,8 +35,7 @@ public class CameraEffects : MonoBehaviour
         Debug.Assert(shake != null, "Shake was null.");
         this.cameraShakes.Add(shake);
     }
-
-    // ReSharper disable Unity.PerformanceAnalysis
+    
     public void CreateActionText(Vector2 position, string text, Color color, float duration, float speed = 1.0f)
     {
         GameObject spawnedActionText = Instantiate(this.actionTextPrefab);
@@ -44,7 +43,6 @@ public class CameraEffects : MonoBehaviour
         ActionText actionText = spawnedActionText.GetComponent<ActionText>();
         actionText.RunWith(text, color, duration, speed);
     }
-    // ReSharper disable Unity.PerformanceAnalysis
     public void CreateShellParticle(Vector2 position)
     {
         GameObject newParticle = Instantiate(this.shellParticlePrefab);
@@ -70,8 +68,6 @@ public class CameraEffects : MonoBehaviour
             change.localPosition = position;
         }
     }
-    
-    
 }
 
 public class Shake

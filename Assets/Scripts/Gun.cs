@@ -33,10 +33,6 @@ public readonly struct Gun
     /// </summary>
     public readonly bool isHitscan;
     /// <summary>
-    /// Cooldown between each shot, in seconds.
-    /// </summary>
-    public readonly float cooldown;
-    /// <summary>
     /// The degrees of inaccuracy of each projectile, if not hitscan.
     /// </summary>
     public readonly float inaccuracy;
@@ -48,11 +44,6 @@ public readonly struct Gun
     /// The speed of the fired projectiles, if not hitscan.
     /// </summary>
     public readonly float projectileSpeed;
-    /// <summary>
-    /// The damage of each projectile, or the hitscan shot if enabled.
-    /// </summary>
-    public readonly int damage;
-
     /// <summary>
     /// The sprite of the weapon.
     /// </summary>
@@ -69,7 +60,20 @@ public readonly struct Gun
     /// The distance to kick the player and gun back on shoot, in pixels.
     /// </summary>
     public readonly float kickback;
+    
+    /// <summary>
+    /// Cooldown between each shot, in seconds.
+    /// </summary>
+    private readonly float cooldown;
+    /// <summary>
+    /// The damage of each projectile, or the hitscan shot if enabled.
+    /// </summary>
+    private readonly int damage;
 
+    public float Cooldown => this.cooldown * this.rarity.GetCooldownMultiplier();
+    public int Damage => Mathf.RoundToInt(this.damage * this.rarity.GetDamageMultiplier());
+    public float InterestTime => Game.baseInterestTime * this.rarity.GetInterestMultiplier();
+    
     /// <summary>
     /// Create a new Gun definition.
     /// </summary>
@@ -103,5 +107,38 @@ public readonly struct Gun
         this.shootPointOffset = shootPointOffset;
         this.locationOffset = locationOffset;
         this.kickback = kickback;
+    }
+    public bool Equals(Gun other)
+    {
+        return this.rarity == other.rarity && this.name == other.name && this.isAuto == other.isAuto &&
+               this.isHitscan == other.isHitscan && this.cooldown.Equals(other.cooldown) &&
+               this.inaccuracy.Equals(other.inaccuracy) && this.projectileCount == other.projectileCount &&
+               this.projectileSpeed.Equals(other.projectileSpeed) && this.damage == other.damage &&
+               this.sprite == other.sprite && this.shootPointOffset.Equals(other.shootPointOffset) &&
+               this.locationOffset.Equals(other.locationOffset) && this.kickback.Equals(other.kickback);
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Gun other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add((int)this.rarity);
+        hashCode.Add(this.name);
+        hashCode.Add(this.isAuto);
+        hashCode.Add(this.isHitscan);
+        hashCode.Add(this.cooldown);
+        hashCode.Add(this.inaccuracy);
+        hashCode.Add(this.projectileCount);
+        hashCode.Add(this.projectileSpeed);
+        hashCode.Add(this.damage);
+        hashCode.Add(this.sprite);
+        hashCode.Add(this.shootPointOffset);
+        hashCode.Add(this.locationOffset);
+        hashCode.Add(this.kickback);
+        return hashCode.ToHashCode();
     }
 }

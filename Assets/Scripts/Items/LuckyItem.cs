@@ -18,6 +18,7 @@ namespace Items
             // get sprite
             this.spriteRenderer.sprite = Resources.LoadAll<Sprite>
                 ("Sprites/Lucky/" + this.luckyObject.ToString().ToLower())[0];
+            SetRarityType(RarityType.Unremarkable);
         }
         protected override void Update()
         {
@@ -37,7 +38,7 @@ namespace Items
 
             CameraEffects effects = CameraEffects.SINGLETON;
             string luckyObjectName = this.luckyObject.ToString().ToUpper();
-            effects.CreateActionText(this.transform.position, "+1 " + luckyObjectName, Rarity.GetColorForRarity(RarityType.Unremarkable), 0.5F, 3F);
+            effects.CreateActionText(this.transform.position, "+1 " + luckyObjectName, RarityType.Unremarkable.GetColor(), 0.5F, 3F);
 
             OnHoverEnd();
             Game.Collect(this.luckyObject);

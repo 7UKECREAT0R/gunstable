@@ -3,13 +3,8 @@
 /// </summary>
 public static class Guns
 {
-    public static readonly Gun[] ALL_GUNS =
-    {
-        
-    };
-
     public static readonly Gun BasicPistol = new Gun(
-        rarity: RarityType.Unremarkable,
+        rarity: RarityType.DoubleTake,
         name: "Basic Pistol",
         damage: 3,
         cooldown: 0.25F,
@@ -19,7 +14,12 @@ public static class Guns
         projectileSpeed: 5.0F,
         sprite: "pistol001",
         shootPointOffset: 0.1F,
-        locationOffset: 0F,
+        locationOffset: 0.08F,
         isAuto: false,
         isHitscan: false);
+
+    public static readonly Gun[] ALL_GUNS =
+    {
+        BasicPistol
+    };
 }
