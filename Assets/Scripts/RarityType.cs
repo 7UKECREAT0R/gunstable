@@ -32,10 +32,10 @@ public static class Rarity
 
         return percent switch
         {
-            < 75 => RarityType.Unremarkable,
-            < 90 => RarityType.Cool,
-            < 96 => RarityType.DoubleTake,
-            < 99 => RarityType.TripleTake,
+            < 50 => RarityType.Unremarkable,
+            < 75 => RarityType.Cool,
+            < 90 => RarityType.DoubleTake,
+            < 98 => RarityType.TripleTake,
             _ => RarityType.Unbelievable
         };
     }

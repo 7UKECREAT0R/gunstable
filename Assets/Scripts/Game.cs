@@ -1,14 +1,40 @@
 ﻿using System;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// All the game-specific stuff that doesn't really need to be instanced in the scene.
 /// </summary>
 public static class Game
 {
+    /// <summary>
+    /// Returns true if a random roll should be a gun, false if the roll should be an item.
+    /// </summary>
+    /// <returns>
+    /// Returns a boolean value indicating whether the random roll should be a gun.
+    /// </returns>
+    public static bool RollDropType()
+    {
+        const float ITEM_PERCENT = 5;
+        return Random.value < (100F - ITEM_PERCENT) / 100F;
+    }
+    public static LuckyObject RollLuckyObject()
+    {
+        int pick = Random.Range(0, 5);
+        return (LuckyObject)pick;
+    }
+    public static Gun RollGun()
+    {
+        int gun = Random.Range(0, Guns.ALL_GUNS.Length);
+        Gun roll = Guns.ALL_GUNS[gun];
+        roll.rarity = Rarity.Roll(RarityRolls);
+        return roll;
+    }
+
     public const float baseInterestTime = 7.5F;
     public const float defaultPickupRange = 0.2F;
     public const float bulletTimeSlowness = 0.3F;
-
+    
     private static int luckyClovers;
     private static int luckyRocks;
     private static int luckySprings;

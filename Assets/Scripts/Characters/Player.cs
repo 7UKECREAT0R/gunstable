@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using Shooting;
+using UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,6 +9,8 @@ namespace Characters
 {
     public class Player : Character
     {
+        private const int HP = 5;
+        
         public float movementSpeed = 1.0F;
         private float clickWolfTimer = 0.0F;
         private float interestMax = 0.0F;
@@ -18,6 +22,7 @@ namespace Characters
         private LookDirection lastDirection;
         private bool lastIsMoving;
         private Camera cam;
+        private UIDriver ui;
 
         /// <summary>
         /// Look towards the given direction. Returns the un-normalized direction from the player to the given location.
@@ -43,18 +48,27 @@ namespace Characters
             this.animator.Play(stateName);
         }
 
-        protected override void OnDeath()
+        protected override void OnDeath(Vector2 incomingDirection)
         {
+            Game.Reset();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
         protected override void AfterDamage(int damageAmount, bool died)
         {
-            CameraEffects effects = CameraEffects.SINGLETON;
-            effects.StartShake(new Shake(1.0f, 30.0f, 0.5f));
+            GlobalStuff effects = GlobalStuff.SINGLETON;
+            effects.StartShake(new Shake(0.3F, 60.0F, 0.3F));
+            
+            if (died)
+                return;
+            
+            if(this.isInHitFlash)
+                StopAllCoroutines();
+            StartCoroutine(DoHitFlash());
         }
         protected override void OnGunUnequipped()
         {
-            throw new NotImplementedException();
+            this.interestRemaining = 0F;
+            this.interestMax = 0F;
         }
         protected override void OnGunEquipped(Gun gun)
         {
@@ -63,7 +77,7 @@ namespace Characters
         }
         protected override void OnHealthChanged(int oldValue, int newValue)
         {
-            throw new NotImplementedException();
+            this.ui.HealthDisplay = newValue;
         }
 
         public override void Start()
@@ -71,9 +85,11 @@ namespace Characters
             base.Start();
             this.cam = Camera.main;
             this.animator = GetComponent<Animator>();
+            this.maxHealth = HP;
+            this.health = HP;
             
-            // TODO: remove
-            this.SpawnGunPickup(new Vector2(0.5F, 0.5F), Guns.BasicPistol);
+            this.ui = FindObjectOfType<UIDriver>();
+            this.ui.HealthDisplay = this.health;
         }
         public override void Update()
         {
@@ -127,14 +143,23 @@ namespace Characters
             this.GunPointAngle = angle;
             
             // interest ticking
-            /*if (this.interestRemaining > 0F)
-                this.interestRemaining -= deltaTime;
-            if (this.interestRemaining < 0F)
+            if (this.HasGun)
             {
-                TryThrowGun(angle);
-                this.interestRemaining = 0F;
-            }*/
-            
+                if (this.interestRemaining > 0F)
+                {
+                    this.interestRemaining -= deltaTime;
+                    this.ui.InterestPercent = this.interestRemaining / this.interestMax;
+                }
+
+                if (this.interestRemaining < 0F)
+                {
+                    TryThrowGun(angle);
+                    this.interestRemaining = 0F;
+                }
+            }
+            else
+                this.ui.InterestPercent = 0F;
+
             // shooting
             if (this.Gun.HasValue)
             {
@@ -159,6 +184,17 @@ namespace Characters
 
             this.clickWolfTimer -= deltaTime;
             
+            // random roll keybind
+            if (Input.GetKeyDown(KeyCode.F3))
+            {
+                SpawnGunPickup(mousePosition, Game.RollGun());
+            }
+            if (Input.GetKeyDown(KeyCode.F4))
+            {
+                GlobalStuff stuff = GlobalStuff.SINGLETON;
+                stuff.SpawnEnemy(mousePosition, 20, Enemy.SpriteSheet.chef);
+            }
+            
             // throwing gun
             if (Input.GetKeyDown(KeyCode.E))
                 TryThrowGun(angle);
@@ -182,10 +218,28 @@ namespace Characters
             thrownGun.ignoreTag = this.gameObject.tag;
             thrownGun.damage = Mathf.RoundToInt(damageFloat);
             thrownGun.angleOfTravel = angle;
-            thrownGun.speed = 2.0F * damageFloat;
+            thrownGun.speed = ThrownGun.SPEED;
 
-            Shake shake = new Shake(damageFloat / 3F, 15F, 0.3F);
-            CameraEffects.SINGLETON.StartShake(shake);
+            Shake shake = new Shake(1.5F, 20F, 0.3F);
+            
+            GlobalStuff effects = GlobalStuff.SINGLETON;
+            effects.StartShake(shake);
+            effects.ImpulseCamera(LocalPositionAlongGunDirection(5F));
+        }
+        
+        private bool isInHitFlash = false;
+        private const float HIT_FLASH_SECONDS = 0.1F;
+        private IEnumerator DoHitFlash()
+        {
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+            this.spriteRenderer.material = stuff.hitFlashPlayer;
+            this.isInHitFlash = true;
+            
+            yield return new WaitForSeconds(HIT_FLASH_SECONDS);
+            
+            // ReSharper disable once Unity.InefficientPropertyAccess
+            this.spriteRenderer.material = stuff.spriteLitDefault;
+            this.isInHitFlash = false;
         }
     }
 }

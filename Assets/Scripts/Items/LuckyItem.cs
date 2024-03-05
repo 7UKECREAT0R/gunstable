@@ -36,9 +36,12 @@ namespace Items
                 return;
             this.clickable = false;
 
-            CameraEffects effects = CameraEffects.SINGLETON;
+            GlobalStuff effects = GlobalStuff.SINGLETON;
             string luckyObjectName = this.luckyObject.ToString().ToUpper();
-            effects.CreateActionText(this.transform.position, "+1 " + luckyObjectName, RarityType.Unremarkable.GetColor(), 0.5F, 3F);
+            effects.CreateActionText(this.transform.position, "+1 " + luckyObjectName, 
+                RarityType.Unremarkable.GetColor(), 
+                RarityType.Unremarkable.GetColor() * 0.75F,
+                0.5F, 3F);
 
             OnHoverEnd();
             Game.Collect(this.luckyObject);
@@ -50,7 +53,7 @@ namespace Items
             if (this.popupActive)
                 return;
             
-            CameraEffects effects = CameraEffects.SINGLETON;
+            GlobalStuff effects = GlobalStuff.SINGLETON;
             Vector2 location = this.cam.ScreenToWorldPoint(Input.mousePosition);
             
             this.popupActive = true;

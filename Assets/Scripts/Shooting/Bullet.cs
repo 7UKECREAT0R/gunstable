@@ -43,7 +43,8 @@ namespace Shooting
                 return;
             
             // damage the character
-            character.Damage(this.damage);
+            Vector2 attackDirection = (character.transform.position - this.transform.position).normalized;
+            character.Damage(this.damage, attackDirection);
 
             if (this.pierce > 0)
             {

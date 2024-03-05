@@ -14,12 +14,12 @@ namespace Characters
     /// </summary>
     public abstract class Character : MonoBehaviour
     {
-        protected enum LookDirection
+        public enum LookDirection
         {
+            Right,
             Up,
-            Down,
             Left,
-            Right
+            Down
         }
 
         [Pure]
@@ -60,10 +60,14 @@ namespace Characters
                 this.gun = value;
 
                 if (!value.HasValue)
+                {
+                    OnGunUnequipped();
                     return;
+                }
 
                 this.gunDistance = value.Value.locationOffset;
                 this.gunRenderer.sprite = value.Value.LoadSprite();
+                OnGunEquipped(value.Value);
             }
         }
 
@@ -100,8 +104,11 @@ namespace Characters
             get => this.gunPointAngle;
             set
             {
+                value %= 360F;
+                
                 bool behind = value > 0F;
                 bool flip = value is < -90F or > 90F;
+                
                 this.gunPointAngle = value;
                 this.gunRenderer.transform.localScale = new Vector3(flip ? -1F : 1F, 1F, 1F);
 
@@ -116,11 +123,11 @@ namespace Characters
             }
         }
         protected bool GunCanShoot => this.shootCooldown < 0.0F;
+        protected float shootCooldown;
 
         private float gunDistanceOffset;
         private float gunDistance;
         private float gunPointAngle;
-        private float shootCooldown;
 
         /// <summary>
         /// Repositions the gun based on:
@@ -147,12 +154,11 @@ namespace Characters
         /// </summary>
         /// <param name="offset">Positive is forwards, negative is backwards.</param>
         /// <returns>The calculated position.</returns>
-        private Vector2 LocalPositionAlongGunDirection(float offset)
+        protected Vector2 LocalPositionAlongGunDirection(float offset)
         {
             float radians = this.gunPointAngle / (180F / Mathf.PI);
             return new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * offset;
         }
-
         /// <summary>
         /// Returns the position along the angle the gun is pointing, in global space.
         /// </summary>
@@ -168,12 +174,15 @@ namespace Characters
         /// <summary>
         /// Deal damage to this character, possibly causing death or serious injury.
         /// </summary>
-        /// <param name="amount"></param>
-        public void Damage(int amount)
+        /// <param name="amount">The amount of damage the attack deals.</param>
+        /// <param name="theDirection">The direction the attack came from.</param>
+        public void Damage(int amount, Vector2 theDirection)
         {
             if (amount < 1)
                 return;
-
+            if (this is Player)
+                amount = 1; // only take 1 damage at a time
+            
             int oldHealth = this.health;
             this.health -= amount;
             bool dead = this.health < 1;
@@ -182,7 +191,7 @@ namespace Characters
             AfterDamage(amount, dead);
 
             if (dead)
-                OnDeath();
+                OnDeath(theDirection);
         }
 
         public void SetHP(int hp)
@@ -208,7 +217,7 @@ namespace Characters
             this.velocityY = y;
         }
 
-        private void SpawnBullet(Gun gun, Vector2 position, float angle)
+        private void SpawnBullet(Gun gun, Vector2 position, float angle, float slowdownFactor)
         {
             GameObject spawnedBullet = Instantiate(this.bulletProjectilePrefab);
             spawnedBullet.transform.position = position;
@@ -216,12 +225,13 @@ namespace Characters
 
             Bullet projectile = spawnedBullet.GetComponent<Bullet>();
             projectile.angleOfTravel = angle;
-            projectile.speed = gun.projectileSpeed;
+            projectile.speed = gun.projectileSpeed * slowdownFactor;
             projectile.damage = gun.Damage;
             projectile.pierce = 0;
             projectile.ignoreTag = this.gameObject.tag;
         }
 
+        [PublicAPI]
         public void SpawnLuckyObjectPickup(Vector2 position, LuckyObject luckyObject)
         {
             GameObject pickup = Instantiate(this.luckyItemPrefab);
@@ -229,6 +239,7 @@ namespace Characters
             LuckyItem item = pickup.GetComponent<LuckyItem>();
             item.luckyObject = luckyObject;
         }
+        [PublicAPI]
         public void SpawnGunPickup(Vector2 position, Gun gun)
         {
             GameObject pickup = Instantiate(this.gunItemPrefab);
@@ -238,9 +249,9 @@ namespace Characters
         }
         
         /// <summary>
-        /// Fires the currently equipped gun, if any, in the direction indicated by <see cref="gunPointAngle"/>.
+        /// Fires the currently equipped gun, if any.
         /// </summary>
-        protected void ShootPointAngle(float angle)
+        protected void ShootPointAngle(float angle, float slowdownFactor = 1.0F)
         {
             if (!this.gun.HasValue)
                 return;
@@ -251,7 +262,7 @@ namespace Characters
 
             // spawn shell
             Vector2 shellPoint = GlobalPositionAlongGunDirection(shellOffset);
-            CameraEffects.SINGLETON.CreateShellParticle(shellPoint);
+            GlobalStuff.SINGLETON.CreateShellParticle(shellPoint);
 
             // get the shoot point
             Vector2 shootPoint = GlobalPositionAlongGunDirection(shootPointOffset);
@@ -263,7 +274,7 @@ namespace Characters
                 {
                     float deviation = Random.Range(-gun.inaccuracy / 2F, gun.inaccuracy / 2F);
                     float deviatedAngle = angle + deviation;
-                    SpawnBullet(gun, shootPoint, deviatedAngle);
+                    SpawnBullet(gun, shootPoint, deviatedAngle, slowdownFactor);
                 }
             }
 
@@ -279,16 +290,18 @@ namespace Characters
         /// Fires the currently equipped gun, if any, at the given direction.
         /// </summary>
         /// <param name="direction">The direction to fire in.</param>
-        protected void Shoot(Vector2 direction)
+        /// <param name="slowdownFactor">The amount to slow the bullet down.</param>
+        protected void Shoot(Vector2 direction, float slowdownFactor = 1.0F)
         {
             float angle = Vector2.SignedAngle(Vector2.right, direction);
-            ShootPointAngle(angle);
+            ShootPointAngle(angle, slowdownFactor);
         }
 
         /// <summary>
         /// Called when this character should die.
         /// </summary>
-        protected abstract void OnDeath();
+        /// <param name="incomingDirection"></param>
+        protected abstract void OnDeath(Vector2 incomingDirection);
 
         /// <summary>
         /// Called after damage is dealt to the character. This event is called just before <see cref="OnDeath"/>

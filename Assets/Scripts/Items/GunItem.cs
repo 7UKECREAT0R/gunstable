@@ -31,6 +31,8 @@ namespace Items
         }
         protected override void OnClick()
         {
+            if (this.player.HasGun)
+                return;
             if (!this.clickable)
                 return;
             this.clickable = false;
@@ -45,14 +47,14 @@ namespace Items
             if (this.popupActive)
                 return;
             
-            CameraEffects effects = CameraEffects.SINGLETON;
+            GlobalStuff effects = GlobalStuff.SINGLETON;
             Vector2 location = this.cam.ScreenToWorldPoint(Input.mousePosition);
             
             this.popupActive = true;
             this.popup = Instantiate(effects.gunPopupPrefab, location,
                     effects.gunPopupPrefab.transform.rotation)
                 .GetComponent<GunPopup>();
-            this.popup.SetGun(this.gun);
+            this.popup.SetGun(this.gun); 
         }
         protected override void OnHoverEnd()
         {

@@ -4,7 +4,7 @@
 public static class Guns
 {
     public static readonly Gun BasicPistol = new Gun(
-        rarity: RarityType.DoubleTake,
+        rarity: RarityType.Unremarkable,
         name: "Basic Pistol",
         damage: 3,
         cooldown: 0.25F,

@@ -47,7 +47,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Gun.cs" />
     <Compile Include="Assets\Scripts\Guns.cs" />
-    <Compile Include="Assets\Scripts\CameraEffects.cs" />
+    <Compile Include="Assets\Scripts\UI\UIDriver.cs" />
     <Compile Include="Assets\Scripts\Characters\Character.cs" />
     <Compile Include="Assets\Scripts\Shooting\Bullet.cs" />
     <Compile Include="Assets\Scripts\UI\LuckyObjectPopup.cs" />
@@ -59,9 +59,12 @@
     <Compile Include="Assets\Scripts\Items\LuckyItem.cs" />
     <Compile Include="Assets\Scripts\Shooting\ThrownGun.cs" />
     <Compile Include="Assets\Scripts\Game.cs" />
+    <Compile Include="Assets\Scripts\GlobalStuff.cs" />
+    <Compile Include="Assets\Scripts\Characters\Enemy.cs" />
     <Compile Include="Assets\Scripts\Characters\Player.cs" />
     <Compile Include="Assets\Scripts\Items\GunItem.cs" />
     <Compile Include="Assets\Scripts\Items\GroundItem.cs" />
+    <Compile Include="Assets\Scripts\UI\InterestMeterDriver.cs" />
     <Compile Include="Assets\Scripts\RarityType.cs" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />

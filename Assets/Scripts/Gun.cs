@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Represents a weapon that can be held.
 /// </summary>
-public readonly struct Gun
+public struct Gun
 {
     public Sprite LoadSprite()
     {
@@ -18,7 +18,7 @@ public readonly struct Gun
     /// <summary>
     /// The rarity of the gun.
     /// </summary>
-    public readonly RarityType rarity;
+    public RarityType rarity;
     /// <summary>
     /// The name of the gun.
     /// </summary>

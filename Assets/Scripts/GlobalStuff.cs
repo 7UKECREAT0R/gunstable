@@ -1,19 +1,29 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using Characters;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(Camera))]
-public class CameraEffects : MonoBehaviour
+public class GlobalStuff : MonoBehaviour
 {
-    public static CameraEffects SINGLETON;
+    public static GlobalStuff SINGLETON;
 
+    public GameObject playerPrefab;
+    public GameObject enemyPrefab;
+
+    public GameObject bloodParticlePrefab;
     public GameObject shellParticlePrefab;
     public GameObject gunPopupPrefab;
     public GameObject luckyItemPopupPrefab;
     public GameObject actionTextPrefab;
     public Material selectionMaterial;
     public Material[] rarityMaterials;
+    public Material hitFlashOther;
+    public Material hitFlashPlayer;
+    public Material spriteLitDefault;
+    
     /// <summary>
     /// Returns the material for the given rarity. Will outline the
     /// sprite with the color associated with the rarity.
@@ -24,8 +34,12 @@ public class CameraEffects : MonoBehaviour
     {
         return this.rarityMaterials[(int)rarity];
     }
-    
+
+    private const float cameraVelocityDrag = 10F;
+    private float cameraVelocityX;
+    private float cameraVelocityY;
     private readonly List<Shake> cameraShakes = new();
+    
     /// <summary>
     /// Begins the given <see cref="Shake"/>.
     /// </summary>
@@ -35,18 +49,36 @@ public class CameraEffects : MonoBehaviour
         Debug.Assert(shake != null, "Shake was null.");
         this.cameraShakes.Add(shake);
     }
+    public void ImpulseCamera(float x, float y)
+    {
+        this.cameraVelocityX += x;
+        this.cameraVelocityY += y;
+    }
+    public void ImpulseCamera(Vector2 velocity) => ImpulseCamera(velocity.x, velocity.y);
     
-    public void CreateActionText(Vector2 position, string text, Color color, float duration, float speed = 1.0f)
+    public void CreateActionText(Vector2 position, string text, Color colorA, Color colorB, float duration, float speed = 1.0f)
     {
         GameObject spawnedActionText = Instantiate(this.actionTextPrefab);
         spawnedActionText.transform.position = position;
         ActionText actionText = spawnedActionText.GetComponent<ActionText>();
-        actionText.RunWith(text, color, duration, speed);
+        actionText.RunWith(text, colorA, colorB, duration, speed);
     }
     public void CreateShellParticle(Vector2 position)
     {
         GameObject newParticle = Instantiate(this.shellParticlePrefab);
         newParticle.transform.position = position;
+    }
+
+    public void SpawnEnemy(Vector2 position, int health, Enemy.SpriteSheet spriteSheet)
+    {
+        GameObject enemyObject = Instantiate(this.enemyPrefab);
+        enemyObject.transform.position = position;
+
+        Enemy enemy = enemyObject.GetComponent<Enemy>();
+        enemy.health = health;
+        enemy.spriteSheet = spriteSheet;
+        enemy.spriteVariant = (Enemy.SpriteVariant)Random.Range(0, 3);
+        enemy.Gun = Game.RollGun();
     }
     
     private void Start()
@@ -56,17 +88,43 @@ public class CameraEffects : MonoBehaviour
     private void Update()
     {
         float deltaTime = Time.deltaTime;
-
+        Transform change = this.transform;
+        Vector3 position = change.localPosition;
+        
         if (this.cameraShakes.Count != 0)
         {
             Vector2 shake = Vector2.zero;
             this.cameraShakes.RemoveAll(s => s.Tick(deltaTime, ref shake));
-            Transform change = this.transform;
-            
-            Vector3 position = change.localPosition;
             position += new Vector3(shake.x, shake.y, 0);
-            change.localPosition = position;
         }
+        
+        // do stuff with camera velocity
+        float dragCoefficient = cameraVelocityDrag * deltaTime;
+        this.cameraVelocityX = Mathf.Lerp(this.cameraVelocityX, 0F, dragCoefficient);
+        this.cameraVelocityY = Mathf.Lerp(this.cameraVelocityY, 0F, dragCoefficient);
+        position.x += this.cameraVelocityX * Time.deltaTime;
+        position.y += this.cameraVelocityY * Time.deltaTime;
+        
+        // apply change
+        change.localPosition = position;
+    }
+
+    private bool isInBulletTime = false;
+
+    public void ActivateBulletTime()
+    {
+        if(this.isInBulletTime)
+            StopAllCoroutines();
+        StartCoroutine(DoBulletTime());
+    }
+    private IEnumerator DoBulletTime()
+    {
+        float bulletTime = Game.BulletTimePerKill;
+        Time.timeScale = Game.bulletTimeSlowness;
+        this.isInBulletTime = true;
+        yield return new WaitForSecondsRealtime(bulletTime);
+        Time.timeScale = 1.0F;
+        this.isInBulletTime = false;
     }
 }
 

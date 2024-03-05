@@ -20,6 +20,8 @@ namespace Shooting
         }
 
         private const float DRAG = 5.0F;
+        public const float SPEED = 7.5F;
+        
         private float spinDirection;
         private bool waitingToBeDestroyed;
         private Gun gun;
@@ -66,7 +68,8 @@ namespace Shooting
                 return;
             
             // damage the character
-            character.Damage(this.damage);
+            Vector2 attackDirection = (character.transform.position - this.transform.position).normalized;
+            character.Damage(this.damage, attackDirection);
             Destroy(this.gameObject);
         }
     }

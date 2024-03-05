@@ -2,13 +2,22 @@ using System;
 using System.Collections.Generic;
 using Characters;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Items
 {
     [RequireComponent(typeof(SpriteRenderer))]
     public abstract class GroundItem : MonoBehaviour
     {
+        private const float SPEED_H = 0.15F;
+        private const float SPEED_Y = 0.75F;
+        private const float GRAVITY = 4.0F;
+        
         private bool hovered;
+        private float angleOfTravel;
+        private float hVelocity;
+        private float yLevelFake;
+        private float yVelocity;
 
         protected SpriteRenderer spriteRenderer;
         protected Camera cam;
@@ -36,7 +45,7 @@ namespace Items
         }
         private void SetMaterial(bool hovered)
         {
-            CameraEffects effects = CameraEffects.SINGLETON;
+            GlobalStuff effects = GlobalStuff.SINGLETON;
             
             if (hovered)
             {
@@ -51,6 +60,11 @@ namespace Items
             this.cam = Camera.main;
             this.spriteRenderer = GetComponent<SpriteRenderer>();
             this.hovered = false;
+
+            this.angleOfTravel = Random.value * 360F;
+            this.hVelocity = SPEED_H;
+            this.yVelocity = SPEED_Y;
+            this.yLevelFake = 0.05F;
         }
 
         private bool firstMaterialSet = false;
@@ -63,6 +77,31 @@ namespace Items
         }
         protected virtual void Update()
         {
+            // moving
+            float deltaTime = Time.deltaTime;
+            
+            float angleRadians = this.angleOfTravel / (180F / Mathf.PI);
+            Vector2 movement = new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
+            movement *= this.hVelocity * deltaTime;
+            this.yLevelFake += this.yVelocity * deltaTime;
+            movement.y += this.yVelocity * deltaTime;
+
+            this.yVelocity -= GRAVITY * deltaTime;
+            
+            if (this.yLevelFake < 0F)
+            {
+                this.yLevelFake = 0F;
+                this.yVelocity *= -1F;
+                this.hVelocity /= 3F;
+                this.yVelocity /= 3F;
+            }
+
+            Transform change = this.transform;
+            Vector2 position = change.position;
+            position += movement;
+            change.position = position;
+
+
             Vector2 mousePosition = this.cam.ScreenToWorldPoint(Input.mousePosition);
             Vector2 itemPosition = this.transform.position;
             Vector2 playerPosition = this.player.transform.position;
