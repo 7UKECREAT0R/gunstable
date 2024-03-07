@@ -7,18 +7,20 @@ using UnityEngine.SceneManagement;
 
 namespace Characters
 {
+    [RequireComponent(typeof(CharacterController))]
     public class Player : Character
     {
         private const int HP = 5;
         
         public float movementSpeed = 1.0F;
-        private float clickWolfTimer = 0.0F;
-        private float interestMax = 0.0F;
-        private float interestRemaining = 0.0F;
+        private float clickWolfTimer;
+        private float interestMax;
+        private float interestRemaining;
         
         private Animator animator;
         private bool isMoving;
 
+        private CharacterController cc;
         private LookDirection lastDirection;
         private bool lastIsMoving;
         private Camera cam;
@@ -48,6 +50,8 @@ namespace Characters
             this.animator.Play(stateName);
         }
 
+        public override bool IsPlayer => true;
+
         protected override void OnDeath(Vector2 incomingDirection)
         {
             Game.Reset();
@@ -74,6 +78,20 @@ namespace Characters
         {
             this.interestMax = gun.InterestTime;
             this.interestRemaining = this.interestMax;
+
+            if (gun.rarity < RarityType.DoubleTake)
+                return;
+            if (this.health >= this.maxHealth)
+                return;
+            
+            GlobalStuff.SINGLETON.CreateActionText(
+                this.transform.position + (Vector3)(Vector2.up * 0.15F),
+                "COOL! +1",
+                new Color(0F, 1F, 0F, 1F),
+                new Color(0.3F, 1F, 0.3F, 1F),
+                0.4F,
+                8.0F);
+            this.ui.HealthDisplay = ++this.health;
         }
         protected override void OnHealthChanged(int oldValue, int newValue)
         {
@@ -83,13 +101,13 @@ namespace Characters
         public override void Start()
         {
             base.Start();
+            this.cc = GetComponent<CharacterController>();
             this.cam = Camera.main;
             this.animator = GetComponent<Animator>();
             this.maxHealth = HP;
             this.health = HP;
             
             this.ui = FindObjectOfType<UIDriver>();
-            this.ui.HealthDisplay = this.health;
         }
         public override void Update()
         {
@@ -127,8 +145,8 @@ namespace Characters
             {
                 movementVector.Normalize();
                 movementVector *= this.movementSpeed;
-                movementVector *= deltaTime;
-                this.transform.Translate(movementVector);
+                movementVector *= Time.unscaledDeltaTime;
+                this.cc.Move(movementVector);
             }
 
             if (this.isMoving != this.lastIsMoving)
@@ -227,7 +245,7 @@ namespace Characters
             effects.ImpulseCamera(LocalPositionAlongGunDirection(5F));
         }
         
-        private bool isInHitFlash = false;
+        private bool isInHitFlash;
         private const float HIT_FLASH_SECONDS = 0.1F;
         private IEnumerator DoHitFlash()
         {

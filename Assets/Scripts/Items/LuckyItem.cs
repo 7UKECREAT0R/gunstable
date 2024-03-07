@@ -10,10 +10,14 @@ namespace Items
         private bool clickable = true;
         private bool popupActive;
         private LuckyObjectPopup popup;
+        private LuckyUIDriver ui;
 
         protected override void Start()
         {
             base.Start();
+            
+            // get ui
+            this.ui = FindObjectOfType<LuckyUIDriver>();
             
             // get sprite
             this.spriteRenderer.sprite = Resources.LoadAll<Sprite>
@@ -45,6 +49,7 @@ namespace Items
 
             OnHoverEnd();
             Game.Collect(this.luckyObject);
+            this.ui.UpdateTexts();
             Destroy(this.gameObject);
         }
         

@@ -125,6 +125,8 @@ namespace Characters
             this.shootCooldown += Random.Range(0F, this.Gun.Value.Cooldown);
         }
 
+        public override bool IsPlayer => false;
+
         protected override void OnDeath(Vector2 incomingDirection)
         {
             bool shouldDropGun = Game.RollDropType();
@@ -144,6 +146,7 @@ namespace Characters
             bloodParticles.transform.position = this.transform.position;
             bloodParticles.transform.forward = incomingDirection;
             stuff.ActivateBulletTime();
+            stuff.RemoveEnemy(this);
             Destroy(this.gameObject);
         }
         protected override void AfterDamage(int damageAmount, bool died)

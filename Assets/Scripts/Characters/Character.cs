@@ -42,6 +42,7 @@ namespace Characters
             return LookDirection.Down;
         }
 
+        public abstract bool IsPlayer { get; }
         public bool HasGun => this.gun.HasValue;
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace Characters
         {
             if (amount < 1)
                 return;
-            if (this is Player)
+            if (this.IsPlayer)
                 amount = 1; // only take 1 damage at a time
             
             int oldHealth = this.health;

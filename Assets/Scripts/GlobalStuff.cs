@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Characters;
+using UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -9,7 +9,8 @@ using Random = UnityEngine.Random;
 public class GlobalStuff : MonoBehaviour
 {
     public static GlobalStuff SINGLETON;
-
+    private UIDriver ui;
+    
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
 
@@ -49,7 +50,7 @@ public class GlobalStuff : MonoBehaviour
         Debug.Assert(shake != null, "Shake was null.");
         this.cameraShakes.Add(shake);
     }
-    public void ImpulseCamera(float x, float y)
+    private void ImpulseCamera(float x, float y)
     {
         this.cameraVelocityX += x;
         this.cameraVelocityY += y;
@@ -69,6 +70,12 @@ public class GlobalStuff : MonoBehaviour
         newParticle.transform.position = position;
     }
 
+    private Dictionary<int, Enemy> enemies = new();
+    private void UpdateEnemyUIText()
+    {
+        int count = this.enemies.Count;
+        this.ui.EnemiesLeft = count;
+    }
     public void SpawnEnemy(Vector2 position, int health, Enemy.SpriteSheet spriteSheet)
     {
         GameObject enemyObject = Instantiate(this.enemyPrefab);
@@ -79,11 +86,20 @@ public class GlobalStuff : MonoBehaviour
         enemy.spriteSheet = spriteSheet;
         enemy.spriteVariant = (Enemy.SpriteVariant)Random.Range(0, 3);
         enemy.Gun = Game.RollGun();
+
+        this.enemies[enemy.GetInstanceID()] = enemy;
+        UpdateEnemyUIText();
+    }
+    public void RemoveEnemy(Enemy enemy)
+    {
+        this.enemies.Remove(enemy.GetInstanceID());
+        UpdateEnemyUIText();
     }
     
     private void Start()
     {
         SINGLETON = this;
+        this.ui = FindObjectOfType<UIDriver>();
     }
     private void Update()
     {
@@ -102,8 +118,8 @@ public class GlobalStuff : MonoBehaviour
         float dragCoefficient = cameraVelocityDrag * deltaTime;
         this.cameraVelocityX = Mathf.Lerp(this.cameraVelocityX, 0F, dragCoefficient);
         this.cameraVelocityY = Mathf.Lerp(this.cameraVelocityY, 0F, dragCoefficient);
-        position.x += this.cameraVelocityX * Time.deltaTime;
-        position.y += this.cameraVelocityY * Time.deltaTime;
+        position.x += this.cameraVelocityX * deltaTime;
+        position.y += this.cameraVelocityY * deltaTime;
         
         // apply change
         change.localPosition = position;
@@ -119,12 +135,32 @@ public class GlobalStuff : MonoBehaviour
     }
     private IEnumerator DoBulletTime()
     {
-        float bulletTime = Game.BulletTimePerKill;
-        Time.timeScale = Game.bulletTimeSlowness;
+        const float TRANSITION_TIME = 0.1F;
         this.isInBulletTime = true;
-        yield return new WaitForSecondsRealtime(bulletTime);
+
+        yield return TransitionFrom(1.0F, Game.bulletTimeSlowness);
+        Time.timeScale = Game.bulletTimeSlowness;
+        
+        float bulletTime = Game.BulletTimePerKill;
+        yield return new WaitForSecondsRealtime(bulletTime - TRANSITION_TIME * 2F);
+        
+        yield return TransitionFrom(Game.bulletTimeSlowness, 1.0F);
         Time.timeScale = 1.0F;
         this.isInBulletTime = false;
+        
+        yield break;
+
+        IEnumerator TransitionFrom(float timeA, float timeB)
+        {
+            float time = 0F;
+            while (time < TRANSITION_TIME)
+            {
+                float t = Mathf.Clamp01(time / TRANSITION_TIME);
+                Time.timeScale = Mathf.Lerp(timeA, timeB, t);
+                yield return new WaitForEndOfFrame();
+                time += Time.unscaledDeltaTime;
+            }
+        }
     }
 }
 

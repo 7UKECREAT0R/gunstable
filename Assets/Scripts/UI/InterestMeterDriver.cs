@@ -22,7 +22,6 @@ namespace UI
                 
                 float maskOffset = EMPTY_X + value;
                 float inverseOffset = CHILD_MIDPOINT_X + (PIXELS - value);
-                Debug.Log($"{value} Pixels. Mask Offset: {maskOffset}, Child Offset: {inverseOffset}");
                 
                 Vector3 maskPosition = this.maskTransform.anchoredPosition;
                 Vector3 childPosition = this.childTransform.anchoredPosition;

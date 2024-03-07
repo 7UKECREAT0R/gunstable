@@ -93,6 +93,24 @@ public static class Game
         }
     }
 
+    /// <summary>
+    /// Get the count of a specific LuckyObject collected by the player.
+    /// </summary>
+    /// <param name="luckyObject">The LuckyObject to get the count for.</param>
+    /// <returns>The count of the specified LuckyObject.</returns>
+    public static int GetCount(LuckyObject luckyObject)
+    {
+        return luckyObject switch
+        {
+            LuckyObject.Clover => luckyClovers,
+            LuckyObject.Rock => luckyRocks,
+            LuckyObject.Spring => luckySprings,
+            LuckyObject.Sandbag => luckySandbags,
+            LuckyObject.Ring => luckyRings,
+            _ => throw new ArgumentOutOfRangeException(nameof(luckyObject), luckyObject, null)
+        };
+    }
+    
     public static string GetName(this LuckyObject luckyObject)
     {
         return luckyObject switch

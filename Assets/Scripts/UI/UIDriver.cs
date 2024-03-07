@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,8 +8,10 @@ namespace UI
     public class UIDriver : MonoBehaviour
     {
         public InterestMeterDriver interestMeter;
+        public LuckyUIDriver luckyObjects;
+        public TextWiggle enemiesLeftText;
+        
         private Image thisImage;
-
         public Sprite[] hpSprites;
 
         /// <summary>
@@ -26,16 +29,26 @@ namespace UI
                 this.thisImage.sprite = this.hpSprites[value];
             }
         }
+
+        public int EnemiesLeft
+        {
+            set
+            {
+                this.enemiesLeftText.Text = value switch
+                {
+                    < 1 => "00",
+                    < 10 => "0" + value,
+                    < 100 => "" + value,
+                    _ => value.ToString()[..2]
+                };
+            }
+        }
         /// <summary>
         /// The amount this bar should be full, from 0-1.
         /// </summary>
         public float InterestPercent
         {
-            set
-            {
-                Debug.Log("interest percent being set to: " + value);
-                this.interestMeter.AmountFull = value;
-            }
+            set => this.interestMeter.AmountFull = value;
         }
 
         private void Start()
