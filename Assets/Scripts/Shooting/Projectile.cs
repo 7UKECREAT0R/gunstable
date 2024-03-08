@@ -23,19 +23,18 @@ namespace Shooting
         
         public string ignoreTag;
 
-        protected virtual void FixedUpdate()
+        protected virtual void Update()
         {
             float angleRadians = this.angleOfTravel / (180F / Mathf.PI);
             Vector2 movement = new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
             movement *= this.speed;
-            movement *= Time.fixedDeltaTime;
+            movement *= Time.deltaTime;
 
             var t = this.transform;
             Vector2 position = t.position;
             position += movement;
             t.position = position;
         }
-
         protected abstract void OnTriggerEnter2D(Collider2D other);
     }
 }

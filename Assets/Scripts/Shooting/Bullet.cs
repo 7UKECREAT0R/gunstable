@@ -1,5 +1,4 @@
 ﻿using Characters;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace Shooting
@@ -15,8 +14,9 @@ namespace Shooting
         /// </summary>
         public int pierce;
 
-        private void Update()
+        protected override void Update()
         {
+            base.Update();
             this.lifetime -= Time.deltaTime;
 
             if (this.lifetime > 0.0F)
@@ -24,10 +24,9 @@ namespace Shooting
             
             Destroy(this.gameObject);
         }
-        protected override void FixedUpdate()
+        private void FixedUpdate()
         {
             this.transform.localRotation = Quaternion.Euler(0F, 0F, this.angleOfTravel);
-            base.FixedUpdate();
         }
         protected override void OnTriggerEnter2D(Collider2D other)
         {
@@ -35,16 +34,18 @@ namespace Shooting
             GameObject hit = other.gameObject;
 
             // respect the ignoreTag
+            if (hit.TryGetComponent(typeof(Bullet), out _) || hit.TryGetComponent(typeof(ThrownGun), out _))
+                return;
             if (!string.IsNullOrEmpty(this.ignoreTag) && hit.CompareTag(this.ignoreTag))
                 return;
             
             Character character = hit.GetComponent<Character>();
-            if (character == null)
-                return;
-            
-            // damage the character
-            Vector2 attackDirection = (character.transform.position - this.transform.position).normalized;
-            character.Damage(this.damage, attackDirection);
+            if (character != null)
+            {
+                // damage the character
+                Vector2 attackDirection = (character.transform.position - this.transform.position).normalized;
+                character.Damage(this.damage, attackDirection);
+            }
 
             if (this.pierce > 0)
             {

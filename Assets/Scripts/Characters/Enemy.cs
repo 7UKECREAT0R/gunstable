@@ -20,9 +20,9 @@ namespace Characters
         }
         
         private readonly RaycastHit2D[] playerVision = new RaycastHit2D[20];
-        private const float BULLET_SPEED_MULTIPLIER = 0.75F;
-        private const float VISION_CONE = 90F;
-        private const float VISION_DISTANCE = 1.5F;
+        private const float BULLET_SPEED_MULTIPLIER = 0.5F;
+        private const float VISION_CONE = 100F;
+        private const float VISION_DISTANCE = 0.5F;
         private const float LOOK_SPEED = 180F;
         private Sprite[] possibleSprites;
         private bool isAlert;
@@ -67,7 +67,6 @@ namespace Characters
             this.thePlayer = GameObject
                 .Find("Player")
                 .GetComponent<Player>();
-            this.GunPointAngle = Random.Range(-180F, 180F);
             
             float angleRadians = this.GunPointAngle / (180F / Mathf.PI);
             Vector2 movement = new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
@@ -122,7 +121,8 @@ namespace Characters
             ShootPointAngle(this.GunPointAngle, BULLET_SPEED_MULTIPLIER);
             
             // little delay to next fire
-            this.shootCooldown += Random.Range(0F, this.Gun.Value.Cooldown);
+            this.shootCooldown += this.Gun.Value.Cooldown * Random.Range(0.5F, 2.0F);
+            
         }
 
         public override bool IsPlayer => false;
@@ -145,7 +145,7 @@ namespace Characters
             GameObject bloodParticles = Instantiate(stuff.bloodParticlePrefab);
             bloodParticles.transform.position = this.transform.position;
             bloodParticles.transform.forward = incomingDirection;
-            stuff.ActivateBulletTime();
+            stuff.ActivateBulletTime(1F);
             stuff.RemoveEnemy(this);
             Destroy(this.gameObject);
         }

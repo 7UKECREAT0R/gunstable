@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace UI
 {
@@ -10,7 +11,14 @@ namespace UI
         public InterestMeterDriver interestMeter;
         public LuckyUIDriver luckyObjects;
         public TextWiggle enemiesLeftText;
+        public bool shaking;
+
+        private const float SHAKE_MAGNITUDE = 1.5F;
+        private const float SHAKE_FREQUENCY = 0.1F;
+        private float shakeCooldown;
         
+        private Vector2 basePosition;
+        private RectTransform rect;
         private Image thisImage;
         public Sprite[] hpSprites;
 
@@ -51,8 +59,30 @@ namespace UI
             set => this.interestMeter.AmountFull = value;
         }
 
+        private void Update()
+        {
+            if (!this.shaking)
+            {
+                this.rect.anchoredPosition = this.basePosition;
+                return;
+            }
+
+            float deltaTime = Time.deltaTime;
+            this.shakeCooldown -= deltaTime;
+            
+            if (this.shakeCooldown > 0F)
+                return;
+            
+            Vector2 newPosition = this.basePosition;
+            newPosition.x += Random.Range(-SHAKE_MAGNITUDE, SHAKE_MAGNITUDE);
+            newPosition.y += Random.Range(-SHAKE_MAGNITUDE, SHAKE_MAGNITUDE);
+            this.rect.anchoredPosition = newPosition;
+        }
         private void Start()
         {
+            this.rect = GetComponent<RectTransform>();
+            this.basePosition = this.rect.anchoredPosition;
+            
             this.thisImage = GetComponent<Image>();
         }
     }

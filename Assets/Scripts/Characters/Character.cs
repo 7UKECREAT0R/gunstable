@@ -72,16 +72,16 @@ namespace Characters
             }
         }
 
-        private const float gunOffsetLerp = 16.0F;
-        private const float velocityLerp = 10.0F;
+        protected const float gunOffsetLerp = 16.0F;
+        protected const float velocityLerp = 10.0F;
 
         public GameObject bulletProjectilePrefab;
         public GameObject thrownGunPrefab;
         public GameObject gunItemPrefab;
         public GameObject luckyItemPrefab;
 
-        private float velocityX, velocityY;
         private Gun? gun = null;
+        protected float velocityX, velocityY;
         protected LookDirection direction;
         protected SpriteRenderer spriteRenderer;
 
@@ -100,7 +100,7 @@ namespace Characters
                 RepositionGun();
             }
         }
-        protected float GunPointAngle
+        public float GunPointAngle
         {
             get => this.gunPointAngle;
             set
@@ -126,7 +126,7 @@ namespace Characters
         protected bool GunCanShoot => this.shootCooldown < 0.0F;
         protected float shootCooldown;
 
-        private float gunDistanceOffset;
+        protected float gunDistanceOffset;
         private float gunDistance;
         private float gunPointAngle;
 
@@ -136,7 +136,7 @@ namespace Characters
         /// <see cref="gunDistance"/>, and
         /// <see cref="gunPointAngle"/>
         /// </summary>
-        private void RepositionGun()
+        protected void RepositionGun()
         {
             float distanceTotal = this.gunDistance + this.gunDistanceOffset;
 
@@ -218,12 +218,14 @@ namespace Characters
             this.velocityY = y;
         }
 
-        private void SpawnBullet(Gun gun, Vector2 position, float angle, float slowdownFactor)
+        private void SpawnBullet(Gun gun, Vector2 position, float angle, float slowdownFactor, Collider ignoreCollider = null)
         {
             GameObject spawnedBullet = Instantiate(this.bulletProjectilePrefab);
             spawnedBullet.transform.position = position;
             spawnedBullet.transform.rotation = Quaternion.Euler(0, 0, angle);
-
+            if(ignoreCollider != null)
+                Physics.IgnoreCollision(spawnedBullet.GetComponent<Collider>(), ignoreCollider);
+            
             Bullet projectile = spawnedBullet.GetComponent<Bullet>();
             projectile.angleOfTravel = angle;
             projectile.speed = gun.projectileSpeed * slowdownFactor;
@@ -239,6 +241,7 @@ namespace Characters
             pickup.transform.position = position;
             LuckyItem item = pickup.GetComponent<LuckyItem>();
             item.luckyObject = luckyObject;
+            GlobalStuff.SINGLETON.droppedItems[pickup.GetInstanceID()] = item;
         }
         [PublicAPI]
         public void SpawnGunPickup(Vector2 position, Gun gun)
@@ -247,12 +250,13 @@ namespace Characters
             pickup.transform.position = position;
             GunItem item = pickup.GetComponent<GunItem>();
             item.gun = gun;
+            GlobalStuff.SINGLETON.droppedItems[pickup.GetInstanceID()] = item;
         }
         
         /// <summary>
         /// Fires the currently equipped gun, if any.
         /// </summary>
-        protected void ShootPointAngle(float angle, float slowdownFactor = 1.0F)
+        protected void ShootPointAngle(float angle, float slowdownFactor = 1.0F, Collider ignoreCollider = null)
         {
             if (!this.gun.HasValue)
                 return;
@@ -275,7 +279,7 @@ namespace Characters
                 {
                     float deviation = Random.Range(-gun.inaccuracy / 2F, gun.inaccuracy / 2F);
                     float deviatedAngle = angle + deviation;
-                    SpawnBullet(gun, shootPoint, deviatedAngle, slowdownFactor);
+                    SpawnBullet(gun, shootPoint, deviatedAngle, slowdownFactor, ignoreCollider);
                 }
             }
 

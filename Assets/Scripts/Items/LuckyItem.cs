@@ -43,8 +43,8 @@ namespace Items
             GlobalStuff effects = GlobalStuff.SINGLETON;
             string luckyObjectName = this.luckyObject.ToString().ToUpper();
             effects.CreateActionText(this.transform.position, "+1 " + luckyObjectName, 
-                RarityType.Unremarkable.GetColor(), 
-                RarityType.Unremarkable.GetColor() * 0.75F,
+                RarityType.Unremarkable.GetColor() * 0.75F, 
+                RarityType.Unremarkable.GetColor() * 0.5F,
                 0.5F, 3F);
 
             OnHoverEnd();

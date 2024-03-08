@@ -4,10 +4,11 @@ using Shooting;
 using UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Worldgen;
 
 namespace Characters
 {
-    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(Rigidbody2D))]
     public class Player : Character
     {
         private const int HP = 5;
@@ -20,11 +21,12 @@ namespace Characters
         private Animator animator;
         private bool isMoving;
 
-        private CharacterController cc;
+        private Rigidbody2D cc;
         private LookDirection lastDirection;
         private bool lastIsMoving;
         private Camera cam;
         private UIDriver ui;
+        private new Collider collider;
 
         /// <summary>
         /// Look towards the given direction. Returns the un-normalized direction from the player to the given location.
@@ -72,7 +74,7 @@ namespace Characters
         protected override void OnGunUnequipped()
         {
             this.interestRemaining = 0F;
-            this.interestMax = 0F;
+            this.interestMax = 1F;
         }
         protected override void OnGunEquipped(Gun gun)
         {
@@ -101,7 +103,8 @@ namespace Characters
         public override void Start()
         {
             base.Start();
-            this.cc = GetComponent<CharacterController>();
+            this.collider = GetComponent<Collider>();
+            this.cc = GetComponent<Rigidbody2D>();
             this.cam = Camera.main;
             this.animator = GetComponent<Animator>();
             this.maxHealth = HP;
@@ -111,8 +114,13 @@ namespace Characters
         }
         public override void Update()
         {
-            base.Update();
             float deltaTime = Time.deltaTime;
+            this.shootCooldown -= deltaTime;
+            this.gunDistanceOffset = Mathf.Lerp(this.gunDistanceOffset, 0.0F, gunOffsetLerp * deltaTime);
+            this.velocityX = Mathf.Lerp(this.velocityX, 0.0F, velocityLerp * deltaTime);
+            this.velocityY = Mathf.Lerp(this.velocityY, 0.0F, velocityLerp * deltaTime);
+
+            RepositionGun();
             
             Vector2 movementVector = Vector2.zero;
             this.isMoving = false;
@@ -140,14 +148,12 @@ namespace Characters
                 movementVector += Vector2.down;
                 this.isMoving = true;
             }
-
-            if (this.isMoving)
-            {
-                movementVector.Normalize();
-                movementVector *= this.movementSpeed;
-                movementVector *= Time.unscaledDeltaTime;
-                this.cc.Move(movementVector);
-            }
+            
+            movementVector.Normalize();
+            movementVector *= this.movementSpeed;
+            movementVector.x += this.velocityX;
+            movementVector.y += this.velocityY;
+            this.cc.velocity = movementVector;
 
             if (this.isMoving != this.lastIsMoving)
                 UpdateAnimator();
@@ -166,7 +172,9 @@ namespace Characters
                 if (this.interestRemaining > 0F)
                 {
                     this.interestRemaining -= deltaTime;
-                    this.ui.InterestPercent = this.interestRemaining / this.interestMax;
+                    float interestPercent = this.interestRemaining / this.interestMax;
+                    this.ui.InterestPercent = interestPercent;
+                    this.ui.shaking = interestPercent < 0.1F;
                 }
 
                 if (this.interestRemaining < 0F)
@@ -176,7 +184,10 @@ namespace Characters
                 }
             }
             else
+            {
+                this.ui.shaking = false;
                 this.ui.InterestPercent = 0F;
+            }
 
             // shooting
             if (this.Gun.HasValue)
@@ -210,9 +221,14 @@ namespace Characters
             if (Input.GetKeyDown(KeyCode.F4))
             {
                 GlobalStuff stuff = GlobalStuff.SINGLETON;
-                stuff.SpawnEnemy(mousePosition, 20, Enemy.SpriteSheet.chef);
+                stuff.SpawnEnemy(mousePosition, 20, angle, Enemy.SpriteSheet.chef);
             }
-            
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                World world = FindObjectOfType<World>();
+                world.Regenerate();
+            }
+
             // throwing gun
             if (Input.GetKeyDown(KeyCode.E))
                 TryThrowGun(angle);
@@ -223,26 +239,30 @@ namespace Characters
                 return;
             
             Gun gun = this.Gun.Value;
-            this.Gun = null;
 
             GameObject thrownObject = Instantiate(this.thrownGunPrefab);
             thrownObject.transform.position = GlobalPositionAlongGunDirection(gun.locationOffset);
             thrownObject.transform.rotation = Quaternion.Euler(0F, 0F, angle);
+            
             ThrownGun thrownGun = thrownObject.GetComponent<ThrownGun>();
-
-            //float interest = 1.0F - this.interestRemaining / this.interestMax;
+            const float BASE_DAMAGE_MULTIPLIER = 2.0F;
+            float interest = 1F - this.interestRemaining / this.interestMax;
+            
             float projectileMultiplier = gun.isHitscan ? 1.0F : gun.projectileCount;
-            float damageFloat = gun.Damage * projectileMultiplier * Game.ThrownWeaponMultiplier /* * interest*/;
+            float damageFloat = BASE_DAMAGE_MULTIPLIER * gun.Damage * projectileMultiplier * Game.ThrownWeaponMultiplier * interest;
             thrownGun.ignoreTag = this.gameObject.tag;
             thrownGun.damage = Mathf.RoundToInt(damageFloat);
             thrownGun.angleOfTravel = angle;
-            thrownGun.speed = ThrownGun.SPEED;
-
-            Shake shake = new Shake(1.5F, 20F, 0.3F);
+            thrownGun.speed = ThrownGun.SPEED * interest;
+            Shake shake = new Shake(1.5F * interest, 20F, 0.3F);
             
             GlobalStuff effects = GlobalStuff.SINGLETON;
             effects.StartShake(shake);
-            effects.ImpulseCamera(LocalPositionAlongGunDirection(5F));
+            effects.ImpulseCamera(LocalPositionAlongGunDirection(5F * interest));
+            this.Gun = null;
+            
+            if (interest > 0.9F)
+                GlobalStuff.SINGLETON.ActivateBulletTime(1.5F);
         }
         
         private bool isInHitFlash;

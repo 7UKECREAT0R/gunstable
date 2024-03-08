@@ -1,5 +1,7 @@
 ﻿using System;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
+using Worldgen;
 using Random = UnityEngine.Random;
 
 /// <summary>
@@ -31,10 +33,109 @@ public static class Game
         return roll;
     }
 
-    public const float baseInterestTime = 7.5F;
+    public const float baseInterestTime = 5.0F;
     public const float defaultPickupRange = 0.2F;
     public const float bulletTimeSlowness = 0.3F;
+
+    public static int level;
+    public static void IncrementLevel()
+    {
+        level++;
+
+        switch (level)
+        {
+            case 0:
+                worldGenerationSettings = WORLD_PRESET_KITCHEN;
+                break;
+            case 1:
+                worldGenerationSettings = WORLD_PRESET_KITCHEN;
+                worldGenerationSettings.roomCount += 10;
+                worldGenerationSettings.minimumEnemies += 3;
+                break;
+            case 2:
+                worldGenerationSettings = WORLD_PRESET_KITCHEN;
+                worldGenerationSettings.roomMinSize += 2;
+                worldGenerationSettings.roomMaxSize += 4;
+                worldGenerationSettings.roomCount += 20;
+                worldGenerationSettings.minimumEnemies += 6;
+                break;
+            case 3:
+                worldGenerationSettings = WORLD_PRESET_CAVE;
+                break;
+            case 4:
+                worldGenerationSettings = WORLD_PRESET_CAVE;
+                worldGenerationSettings.roomCount += 5;
+                worldGenerationSettings.minimumEnemies += 5;
+                break;
+            case 5:
+                worldGenerationSettings = WORLD_PRESET_CAVE;
+                worldGenerationSettings.roomMinSize += 2;
+                worldGenerationSettings.roomMaxSize += 4;
+                worldGenerationSettings.roomCount += 10;
+                worldGenerationSettings.minimumEnemies += 10;
+                break;
+            case 6:
+                worldGenerationSettings = WORLD_PRESET_WHITE_HOUSE;
+                break;
+            case 7:
+                worldGenerationSettings = WORLD_PRESET_WHITE_HOUSE;
+                worldGenerationSettings.roomCount += 20;
+                worldGenerationSettings.minimumEnemies += 10;
+                break;
+            case 8:
+                worldGenerationSettings = WORLD_PRESET_WHITE_HOUSE;
+                worldGenerationSettings.roomMinSize += 1;
+                worldGenerationSettings.roomMaxSize += 2;
+                worldGenerationSettings.roomCount += 40;
+                worldGenerationSettings.minimumEnemies += 15;
+                break;
+            default:
+            {
+                // procedurally generate levels
+                worldGenerationSettings = Random.Range(0, 3) switch
+                {
+                    0 => WORLD_PRESET_KITCHEN,
+                    1 => WORLD_PRESET_CAVE,
+                    2 => WORLD_PRESET_WHITE_HOUSE,
+                    _ => throw new Exception("what?")
+                };
+                worldGenerationSettings.roomCount += 3 * level;
+                worldGenerationSettings.minimumEnemies += 2 * level;
+                break;
+            }
+        }
+    }
     
+    internal static readonly WorldgenSettings WORLD_PRESET_KITCHEN = new()
+    {
+        sheet = WorldSpriteSheet.kitchen,
+        roomMinSize = 5,
+        roomMaxSize = 9,
+        roomCount = 20,
+        hallWidth = 3,
+        minimumEnemies = 10
+    };
+    internal static readonly WorldgenSettings WORLD_PRESET_CAVE = new()
+    {
+        sheet = WorldSpriteSheet.cave,
+        roomMinSize = 12,
+        roomMaxSize = 24,
+        roomCount = 10,
+        hallWidth = 8,
+        minimumEnemies = 15
+    };
+    internal static readonly WorldgenSettings WORLD_PRESET_WHITE_HOUSE = new()
+    {
+        sheet = WorldSpriteSheet.white_house,
+        roomMinSize = 6,
+        roomMaxSize = 9,
+        roomCount = 40,
+        hallWidth = 2,
+        minimumEnemies = 20
+    };
+
+    public static WorldgenSettings worldGenerationSettings = WORLD_PRESET_KITCHEN;
+
     private static int luckyClovers;
     private static int luckyRocks;
     private static int luckySprings;

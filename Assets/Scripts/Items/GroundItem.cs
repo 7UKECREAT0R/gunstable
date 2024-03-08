@@ -67,7 +67,7 @@ namespace Items
             this.yLevelFake = 0.05F;
         }
 
-        private bool firstMaterialSet = false;
+        private bool firstMaterialSet;
         private void LateUpdate()
         {
             if (this.firstMaterialSet)
@@ -124,5 +124,11 @@ namespace Items
         
         protected abstract void OnHoverStart();
         protected abstract void OnHoverEnd();
+
+        private void OnDestroy()
+        {
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+            stuff.droppedItems.Remove(this.gameObject.GetInstanceID());
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace Shooting
         }
 
         private const float DRAG = 5.0F;
-        public const float SPEED = 7.5F;
+        public const float SPEED = 8.5F;
         
         private float spinDirection;
         private bool waitingToBeDestroyed;
@@ -32,8 +32,9 @@ namespace Shooting
             this.spriteRenderer = GetComponent<SpriteRenderer>();
             this.spinDirection = (Random.Range(0, 2) == 1 ? 1F : -1F) + Random.Range(-0.1F, 0.1F);
         }
-        private void Update()
+        protected override void Update()
         {
+            base.Update();
             float deltaTime = Time.deltaTime;
 
             this.speed = Mathf.Lerp(this.speed, 0F, DRAG * deltaTime);
@@ -50,15 +51,13 @@ namespace Shooting
         {
             // hit something with a rigid-body
             GameObject hit = other.gameObject;
-
-            Debug.Log($"collision here. ignoring {this.ignoreTag}. hit tag: {hit.tag} name \"{hit.name}\"");
             
             // respect the ignoreTag
+            if (hit.TryGetComponent(typeof(Bullet), out _) || hit.TryGetComponent(typeof(ThrownGun), out _))
+                return;
             if (!string.IsNullOrEmpty(this.ignoreTag) && hit.CompareTag(this.ignoreTag))
                 return;
             
-            Debug.Log("collision here");
-
             // bounce off whatever it hit
             this.angleOfTravel += 180F;
             this.speed /= 1.5F;

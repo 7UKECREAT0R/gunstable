@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Characters;
+using Items;
 using UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -70,18 +72,20 @@ public class GlobalStuff : MonoBehaviour
         newParticle.transform.position = position;
     }
 
-    private Dictionary<int, Enemy> enemies = new();
+    private readonly Dictionary<int, Enemy> enemies = new();
+    public readonly Dictionary<int, GroundItem> droppedItems = new();
     private void UpdateEnemyUIText()
     {
         int count = this.enemies.Count;
         this.ui.EnemiesLeft = count;
     }
-    public void SpawnEnemy(Vector2 position, int health, Enemy.SpriteSheet spriteSheet)
+    public void SpawnEnemy(Vector2 position, int health, float angle, Enemy.SpriteSheet spriteSheet)
     {
         GameObject enemyObject = Instantiate(this.enemyPrefab);
         enemyObject.transform.position = position;
 
         Enemy enemy = enemyObject.GetComponent<Enemy>();
+        enemy.GunPointAngle = angle;
         enemy.health = health;
         enemy.spriteSheet = spriteSheet;
         enemy.spriteVariant = (Enemy.SpriteVariant)Random.Range(0, 3);
@@ -94,6 +98,28 @@ public class GlobalStuff : MonoBehaviour
     {
         this.enemies.Remove(enemy.GetInstanceID());
         UpdateEnemyUIText();
+    }
+    public int Enemies => this.enemies.Count;
+    private IEnumerable<Enemy> GetAllEnemiesSnapshot()
+    {
+        return this.enemies.Values.ToArray();
+    }
+    private IEnumerable<GroundItem> GetAllItemsSnapshot()
+    {
+        return this.droppedItems.Values.ToArray();
+    }
+    public void ClearWorld()
+    {
+        IEnumerable<Enemy> allEnemies = GetAllEnemiesSnapshot();
+        IEnumerable<GroundItem> allItems = GetAllItemsSnapshot();
+
+        foreach (Enemy enemy in allEnemies)
+        {
+            Destroy(enemy.gameObject);
+            RemoveEnemy(enemy);
+        }
+        foreach (GroundItem item in allItems)
+            Destroy(item.gameObject);
     }
     
     private void Start()
@@ -127,22 +153,21 @@ public class GlobalStuff : MonoBehaviour
 
     private bool isInBulletTime = false;
 
-    public void ActivateBulletTime()
+    public void ActivateBulletTime(float lengthMultiplier)
     {
         if(this.isInBulletTime)
             StopAllCoroutines();
-        StartCoroutine(DoBulletTime());
+        StartCoroutine(DoBulletTime(Game.BulletTimePerKill * lengthMultiplier));
     }
-    private IEnumerator DoBulletTime()
+    private IEnumerator DoBulletTime(float amount)
     {
         const float TRANSITION_TIME = 0.1F;
         this.isInBulletTime = true;
 
         yield return TransitionFrom(1.0F, Game.bulletTimeSlowness);
         Time.timeScale = Game.bulletTimeSlowness;
-        
-        float bulletTime = Game.BulletTimePerKill;
-        yield return new WaitForSecondsRealtime(bulletTime - TRANSITION_TIME * 2F);
+
+        yield return new WaitForSecondsRealtime(amount - TRANSITION_TIME * 2F);
         
         yield return TransitionFrom(Game.bulletTimeSlowness, 1.0F);
         Time.timeScale = 1.0F;
