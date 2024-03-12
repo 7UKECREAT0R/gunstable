@@ -11,6 +11,7 @@ using Random = UnityEngine.Random;
 public class GlobalStuff : MonoBehaviour
 {
     public static GlobalStuff SINGLETON;
+    
     private UIDriver ui;
     
     public GameObject playerPrefab;

@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\UI\LuckyUIDriver.cs" />
     <Compile Include="Assets\Scripts\Characters\Enemy.cs" />
     <Compile Include="Assets\Scripts\Characters\Player.cs" />
+    <Compile Include="Assets\Scripts\UI\MainMenuLogoDriver.cs" />
     <Compile Include="Assets\Scripts\Worldgen\World.cs" />
     <Compile Include="Assets\Scripts\Items\GunItem.cs" />
     <Compile Include="Assets\Scripts\Items\GroundItem.cs" />

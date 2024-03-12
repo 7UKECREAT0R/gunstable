@@ -33,6 +33,7 @@ namespace UI
                 this.childTransform.ForceUpdateRectTransforms();
             }
         }
+        
         /// <summary>
         /// The amount this bar should be full, from 0-1.
         /// </summary>
