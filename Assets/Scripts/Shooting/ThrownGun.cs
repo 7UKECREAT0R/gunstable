@@ -35,6 +35,10 @@ namespace Shooting
         protected override void Update()
         {
             base.Update();
+            
+            if (Game.isPaused)
+                return;
+            
             float deltaTime = Time.deltaTime;
 
             this.speed = Mathf.Lerp(this.speed, 0F, DRAG * deltaTime);

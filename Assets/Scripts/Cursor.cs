@@ -19,8 +19,8 @@ public class Cursor : MonoBehaviour
     }
     private void Update()
     {
-        UnityEngine.Cursor.visible = false;
-        UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+        UnityEngine.Cursor.visible = Game.isPaused;
+        UnityEngine.Cursor.lockState = Game.isPaused ? CursorLockMode.None : CursorLockMode.Confined;
         
         this.cursorLocation = this.cam.ScreenToWorldPoint(Input.mousePosition);
         this.transform.position = this.cursorLocation;

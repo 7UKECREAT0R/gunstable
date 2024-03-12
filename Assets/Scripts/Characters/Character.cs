@@ -336,7 +336,7 @@ namespace Characters
         public virtual void Update()
         {
             float deltaTime = Time.deltaTime;
-            this.shootCooldown -= deltaTime;
+            this.shootCooldown -= this.IsPlayer ? Time.unscaledDeltaTime : deltaTime;
             this.gunDistanceOffset = Mathf.Lerp(this.gunDistanceOffset, 0.0F, gunOffsetLerp * deltaTime);
             this.velocityX = Mathf.Lerp(this.velocityX, 0.0F, velocityLerp * deltaTime);
             this.velocityY = Mathf.Lerp(this.velocityY, 0.0F, velocityLerp * deltaTime);

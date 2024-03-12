@@ -24,49 +24,60 @@
     public static class TileTypeUtils
     {
         /// <summary>
-        /// Returns TileType.Floor if selfIsFloor. Otherwise, uses the input matrix to determine which
-        /// tile to return.
+        /// Uses the input matrix to determine which tile to return.
         /// </summary>
-        /// <param name="selfIsFloor">If this rile is a floor (returns TileType.Floor)</param>
-        /// <param name="left">If the tile to the left is a wall.</param>
-        /// <param name="top">If the tile above is a wall.</param>
-        /// <param name="right">If the tile to the right is a wall.</param>
-        /// <param name="bottom">If the tile below is a wall.</param>
+        /// <param name="middleLeft">If the tile to the left is a wall.</param>
+        /// <param name="topMiddle">If the tile above is a wall.</param>
+        /// <param name="middleRight">If the tile to the right is a wall.</param>
+        /// <param name="bottomMiddle">If the tile below is a wall.</param>
         /// <param name="bottomLeft">If the bottom-left tile is a wall.</param>
         /// <param name="bottomRight">If the bottom-right tile is a wall.</param>
         /// <param name="topLeft">If the top-left tile is a wall.</param>
         /// <param name="topRight">If the top-right tile is a wall.</param>
         /// <returns>The sprite type to use in the given configuration.</returns>
-        public static TileType GetTileType(bool selfIsFloor,
-            bool left, bool top, bool right, bool bottom,
+        public static TileType GetTileType(bool middleLeft, bool topMiddle, bool middleRight, bool bottomMiddle,
             bool bottomLeft, bool bottomRight, bool topLeft, bool topRight)
         {
-            if (selfIsFloor)
-                return TileType.Floor;
-            if (top && right && !topRight)
-                return TileType.CornerTopRight;
-            if (top && left && !topLeft)
+            switch (topMiddle)
+            {
+                case true when bottomMiddle && middleLeft && !middleRight:
+                    return TileType.EdgeLeft;
+                case true when bottomMiddle && !middleLeft && middleRight:
+                    return TileType.EdgeRight;
+                case true when !bottomMiddle && middleLeft && middleRight:
+                    return TileType.EdgeTop;
+                case false when bottomMiddle && middleLeft && middleRight:
+                    return TileType.EdgeBottom;
+            }
+
+            int coveredCorners = (bottomRight?1:0) + (bottomLeft?1:0) + (topLeft?1:0) + (topRight?1:0);
+
+            if (coveredCorners == 1)
+            {
+                if(bottomLeft)
+                    return TileType.StubBottomLeft;
+                if(bottomRight)
+                    return TileType.StubBottomRight;
+                if(topRight)
+                    return TileType.StubTopRight;
+                if(topLeft)
+                    return TileType.StubTopLeft;
+            }
+
+            if (!middleLeft || !middleRight || !topMiddle)
+                return TileType.Ceiling;
+
+            if (coveredCorners != 3)
+                return TileType.Ceiling;
+            if (!bottomRight)
                 return TileType.CornerTopLeft;
-            if (bottom && right && !bottomRight)
-                return TileType.CornerBottomRight;
-            if (bottom && left && !bottomLeft)
+            if (!bottomLeft)
+                return TileType.CornerTopRight;
+            if (!topRight)
                 return TileType.CornerBottomLeft;
-            if (!bottom && !left && !bottomLeft)
-                return TileType.StubBottomLeft;
-            if (!bottom && !right && !bottomRight)
-                return TileType.StubBottomRight;
-            if (!top && !left && !topLeft)
-                return TileType.StubTopLeft;
-            if (!top && !right && !topRight)
-                return TileType.StubTopRight;
-            if (!top)
-                return TileType.EdgeTop;
-            if (!bottom)
-                return TileType.EdgeBottom;
-            if (!left)
-                return TileType.EdgeLeft;
-            if (!right)
-                return TileType.EdgeRight;
+            if (!topLeft)
+                return TileType.CornerBottomRight;
+
             return TileType.Ceiling;
         }
     }

@@ -314,7 +314,7 @@ namespace Worldgen
                 this.tilesWidth + OUTER_PADDING * 2,
                 this.tilesHeight + OUTER_PADDING * 2
             );
-            
+
             // regular apply
             Vector3Int placer = new Vector3Int(0, 0, 0);
             for (int y = 0; y < this.tilesHeight; y++)
@@ -323,13 +323,41 @@ namespace Worldgen
                 for (int x = 0; x < this.tilesWidth; x++)
                 {
                     placer.x = x + OUTER_PADDING;
-                    
-                    bool sample = this.tiles[x, y];
-                    Tile tile = sample ?
-                        this.loadedTiles[TileType.Floor] :
-                        ceilingTile;
+                    TileType type;
+                    bool middleMiddle = this.tiles[x, y];
+
+                    if (!middleMiddle)
+                    {
+                        bool topLeft = TryIsWall(x - 1, y - 1);
+                        bool topMiddle = TryIsWall(x, y - 1);
+                        bool topRight = TryIsWall(x + 1, y - 1);
+                        bool middleLeft = TryIsWall(x - 1, y);
+                        bool middleRight = TryIsWall(x + 1, y);
+                        bool bottomLeft = TryIsWall(x - 1, y + 1);
+                        bool bottomMiddle = TryIsWall(x, y + 1);
+                        bool bottomRight = TryIsWall(x + 1, y + 1);
+                        type = TileTypeUtils.GetTileType(
+                            middleLeft, topMiddle, middleRight, bottomMiddle,
+                            bottomLeft, bottomRight, topLeft, topRight);
+                    }
+                    else
+                        type = TileType.Floor;
+
+                    Tile tile = this.loadedTiles[type];
                     this.tilemap.SetTile(placer, tile);
                 }
+            }
+
+            return;
+            
+            // Returns if the tile at the given coordinate is a wall.
+            bool TryIsWall(int x, int y)
+            {
+                if (x >= this.tilesWidth || x < 0)
+                    return true;
+                if (y >= this.tilesHeight || y < 0)
+                    return true;
+                return !this.tiles[x, y];
             }
         }
         private Room GenerateBranchRoom(Room roomBase)

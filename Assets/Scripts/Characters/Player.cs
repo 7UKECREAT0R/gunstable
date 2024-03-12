@@ -53,7 +53,7 @@ namespace Characters
         }
 
         public override bool IsPlayer => true;
-
+        
         protected override void OnDeath(Vector2 incomingDirection)
         {
             Game.Reset();
@@ -85,15 +85,23 @@ namespace Characters
                 return;
             if (this.health >= this.maxHealth)
                 return;
+
+            int healthGain = (int) gun.rarity - (int) RarityType.Cool;
             
             GlobalStuff.SINGLETON.CreateActionText(
                 this.transform.position + (Vector3)(Vector2.up * 0.15F),
-                "COOL! +1",
+                "COOL! +" + healthGain,
                 new Color(0F, 1F, 0F, 1F),
                 new Color(0.3F, 1F, 0.3F, 1F),
                 0.4F,
                 8.0F);
-            this.ui.HealthDisplay = ++this.health;
+
+            this.health += healthGain;
+            
+            if (this.health > this.maxHealth)
+                this.health = this.maxHealth;
+            
+            this.ui.HealthDisplay = this.health;
         }
         protected override void OnHealthChanged(int oldValue, int newValue)
         {
@@ -119,6 +127,15 @@ namespace Characters
             this.gunDistanceOffset = Mathf.Lerp(this.gunDistanceOffset, 0.0F, gunOffsetLerp * deltaTime);
             this.velocityX = Mathf.Lerp(this.velocityX, 0.0F, velocityLerp * deltaTime);
             this.velocityY = Mathf.Lerp(this.velocityY, 0.0F, velocityLerp * deltaTime);
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Game.isPaused = !Game.isPaused;
+                this.ui.PauseMenuIsVisible = Game.isPaused;
+            }
+            
+            if (Game.isPaused)
+                return;
 
             RepositionGun();
             
@@ -153,6 +170,17 @@ namespace Characters
             movementVector *= this.movementSpeed;
             movementVector.x += this.velocityX;
             movementVector.y += this.velocityY;
+            
+            // adjust for time scale so the player so they can move at semi-full speed.
+            if (Time.timeScale < 1F)
+            {
+                // this still lets you "feel" the bullet time, but
+                // you still get the benefits of being in it.
+                float adjustedScale = Mathf.Lerp(Time.timeScale, 1F, 0.5F);
+                movementVector /= adjustedScale;
+            }
+
+            // apply movement vector
             this.cc.velocity = movementVector;
 
             if (this.isMoving != this.lastIsMoving)

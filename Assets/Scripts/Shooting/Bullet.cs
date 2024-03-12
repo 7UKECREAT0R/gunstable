@@ -16,6 +16,9 @@ namespace Shooting
 
         protected override void Update()
         {
+            if (Game.isPaused)
+                return;
+            
             base.Update();
             this.lifetime -= Time.deltaTime;
 

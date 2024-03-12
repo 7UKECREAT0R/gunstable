@@ -12,7 +12,8 @@ namespace Items
         private const float SPEED_H = 0.15F;
         private const float SPEED_Y = 0.75F;
         private const float GRAVITY = 4.0F;
-        
+
+        private bool doDropAnimation = true;
         private bool hovered;
         private float angleOfTravel;
         private float hVelocity;
@@ -79,29 +80,39 @@ namespace Items
         {
             // moving
             float deltaTime = Time.deltaTime;
-            
+
             float angleRadians = this.angleOfTravel / (180F / Mathf.PI);
             Vector2 movement = new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
             movement *= this.hVelocity * deltaTime;
-            this.yLevelFake += this.yVelocity * deltaTime;
-            movement.y += this.yVelocity * deltaTime;
-
-            this.yVelocity -= GRAVITY * deltaTime;
             
-            if (this.yLevelFake < 0F)
+            if (this.doDropAnimation)
             {
-                this.yLevelFake = 0F;
-                this.yVelocity *= -1F;
-                this.hVelocity /= 3F;
-                this.yVelocity /= 3F;
+                this.yLevelFake += this.yVelocity * deltaTime;
+                movement.y += this.yVelocity * deltaTime;
+
+                this.yVelocity -= GRAVITY * deltaTime;
+
+                if (this.yLevelFake < 0F)
+                {
+                    this.yLevelFake = 0F;
+                    this.yVelocity *= -1F;
+                    this.hVelocity /= 3F;
+                    this.yVelocity /= 3F;
+
+                    if (this.hVelocity < 0.005F)
+                    {
+                        this.doDropAnimation = false;
+                        this.hVelocity = 0;
+                        this.yVelocity = 0;
+                    }
+                }
             }
 
             Transform change = this.transform;
             Vector2 position = change.position;
             position += movement;
             change.position = position;
-
-
+            
             Vector2 mousePosition = this.cam.ScreenToWorldPoint(Input.mousePosition);
             Vector2 itemPosition = this.transform.position;
             Vector2 playerPosition = this.player.transform.position;

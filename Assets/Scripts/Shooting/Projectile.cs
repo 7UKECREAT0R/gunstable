@@ -25,6 +25,9 @@ namespace Shooting
 
         protected virtual void Update()
         {
+            if (Game.isPaused)
+                return;
+            
             float angleRadians = this.angleOfTravel / (180F / Mathf.PI);
             Vector2 movement = new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
             movement *= this.speed;

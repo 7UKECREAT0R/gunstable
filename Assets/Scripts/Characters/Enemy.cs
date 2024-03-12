@@ -78,6 +78,9 @@ namespace Characters
         }
         public void FixedUpdate()
         {
+            if (Game.isPaused)
+                return;
+            
             // shoot a ray towards the player, ignoring objects with the same tag.
             var positionTransform = this.transform;
             var position = positionTransform.position;
@@ -122,7 +125,6 @@ namespace Characters
             
             // little delay to next fire
             this.shootCooldown += this.Gun.Value.Cooldown * Random.Range(0.5F, 2.0F);
-            
         }
 
         public override bool IsPlayer => false;

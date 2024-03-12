@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics.Contracts;
 using TMPro;
 using UnityEngine;
@@ -44,10 +45,11 @@ namespace UI
 
         private void Start()
         {
-            UpdateTexts();
+            StartCoroutine(UpdateTextsLater());
         }
-        public void UpdateTexts()
+        public IEnumerator UpdateTextsLater()
         {
+            yield return new WaitForFixedUpdate();
             this.Clovers = Game.GetCount(LuckyObject.Clover);
             this.Rings = Game.GetCount(LuckyObject.Ring);
             this.Rocks = Game.GetCount(LuckyObject.Rock);

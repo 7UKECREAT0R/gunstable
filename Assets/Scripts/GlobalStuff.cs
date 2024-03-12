@@ -114,12 +114,12 @@ public class GlobalStuff : MonoBehaviour
         IEnumerable<GroundItem> allItems = GetAllItemsSnapshot();
 
         foreach (Enemy enemy in allEnemies)
-        {
             Destroy(enemy.gameObject);
-            RemoveEnemy(enemy);
-        }
         foreach (GroundItem item in allItems)
             Destroy(item.gameObject);
+        
+        this.enemies.Clear();
+        this.droppedItems.Clear();
     }
     
     private void Start()

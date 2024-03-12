@@ -8,6 +8,7 @@ namespace UI
 {
     public class UIDriver : MonoBehaviour
     {
+        public GameObject pauseMenu;
         public InterestMeterDriver interestMeter;
         public LuckyUIDriver luckyObjects;
         public TextWiggle enemiesLeftText;
@@ -58,7 +59,14 @@ namespace UI
         {
             set => this.interestMeter.AmountFull = value;
         }
-
+        /// <summary>
+        /// Sets if the pause menu should be visible.
+        /// </summary>
+        public bool PauseMenuIsVisible
+        {
+            set => this.pauseMenu.SetActive(value);
+        }
+        
         private void Update()
         {
             if (!this.shaking)

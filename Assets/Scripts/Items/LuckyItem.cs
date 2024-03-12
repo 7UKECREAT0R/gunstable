@@ -49,7 +49,7 @@ namespace Items
 
             OnHoverEnd();
             Game.Collect(this.luckyObject);
-            this.ui.UpdateTexts();
+            this.ui.UpdateTextsLater();
             Destroy(this.gameObject);
         }
         

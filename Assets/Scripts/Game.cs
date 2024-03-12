@@ -1,6 +1,4 @@
 ﻿using System;
-using Unity.VisualScripting.Dependencies.NCalc;
-using UnityEngine;
 using Worldgen;
 using Random = UnityEngine.Random;
 
@@ -33,10 +31,11 @@ public static class Game
         return roll;
     }
 
-    public const float baseInterestTime = 5.0F;
+    public const float baseInterestTime = 3.0F;
     public const float defaultPickupRange = 0.2F;
     public const float bulletTimeSlowness = 0.3F;
 
+    
     public static int level;
     public static void IncrementLevel()
     {
@@ -105,8 +104,8 @@ public static class Game
             }
         }
     }
-    
-    internal static readonly WorldgenSettings WORLD_PRESET_KITCHEN = new()
+
+    private static readonly WorldgenSettings WORLD_PRESET_KITCHEN = new()
     {
         sheet = WorldSpriteSheet.kitchen,
         roomMinSize = 5,
@@ -115,7 +114,7 @@ public static class Game
         hallWidth = 3,
         minimumEnemies = 10
     };
-    internal static readonly WorldgenSettings WORLD_PRESET_CAVE = new()
+    private static readonly WorldgenSettings WORLD_PRESET_CAVE = new()
     {
         sheet = WorldSpriteSheet.cave,
         roomMinSize = 12,
@@ -124,7 +123,7 @@ public static class Game
         hallWidth = 8,
         minimumEnemies = 15
     };
-    internal static readonly WorldgenSettings WORLD_PRESET_WHITE_HOUSE = new()
+    private static readonly WorldgenSettings WORLD_PRESET_WHITE_HOUSE = new()
     {
         sheet = WorldSpriteSheet.white_house,
         roomMinSize = 6,
@@ -135,7 +134,8 @@ public static class Game
     };
 
     public static WorldgenSettings worldGenerationSettings = WORLD_PRESET_KITCHEN;
-
+    public static bool isPaused;
+    
     private static int luckyClovers;
     private static int luckyRocks;
     private static int luckySprings;
@@ -145,7 +145,7 @@ public static class Game
     /// <summary>
     /// Number of rarity rolls the player gets.
     /// </summary>
-    public static int RarityRolls => 1 + luckyClovers;
+    private static int RarityRolls => 1 + luckyClovers;
 
     /// <summary>
     /// Multiplier to be combined with the thrown weapon damage.
@@ -238,6 +238,7 @@ public static class Game
     }
     public static void Reset()
     {
+        isPaused = false;
         luckyClovers = 0;
         luckyRocks = 0;
         luckySprings = 0;
