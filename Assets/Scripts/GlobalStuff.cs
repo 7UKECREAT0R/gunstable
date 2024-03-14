@@ -295,6 +295,35 @@ public class GlobalStuff : MonoBehaviour
         string levelDescription = $"{Game.level + 1} - {levelSheetName}";
         this.ui.DisplayInfoString(levelDescription, DURATION, new Color(0.96F, 1F, 0.91F));
     }
+
+    public void PlaySound(SoundEffect effect)
+    {
+        AudioClip clip = Resources.Load<AudioClip>("Sounds/" + effect);
+        this.audioSource.PlayOneShot(clip);
+    }
+    public void PlaySoundDelayed(SoundEffect effect, float delay)
+    {
+        AudioClip clip = Resources.Load<AudioClip>("Sounds/" + effect);
+        StartCoroutine(PlaySoundLater(clip, delay));
+    }
+    public enum SoundEffect
+    {
+        GunEquip,
+        Hurt,
+        Kill,
+        KillAlt,
+        PickUpHeal,
+        Shoot,
+        ThrowGun,
+        UIClick,
+        UIHover
+    }
+
+    private IEnumerator PlaySoundLater(AudioClip clip, float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        this.audioSource.PlayOneShot(clip);
+    }
 }
 
 public class Shake

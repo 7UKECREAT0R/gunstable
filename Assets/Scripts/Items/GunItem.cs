@@ -48,6 +48,7 @@ namespace Items
                 return;
             
             GlobalStuff effects = GlobalStuff.SINGLETON;
+            effects.PlaySound(GlobalStuff.SoundEffect.UIHover);
             Vector2 location = this.cam.ScreenToWorldPoint(Input.mousePosition);
             
             this.popupActive = true;

@@ -72,6 +72,9 @@ namespace UI
 
         private void OnPointerEnter()
         {
+            GlobalStuff.SINGLETON.PlaySound(GlobalStuff.SoundEffect.UIHover);
+
+            
             this.hovered = true;
             this.text.color = textColorHover;
         }
@@ -83,6 +86,8 @@ namespace UI
 
         private void OnPointerClick()
         {
+            GlobalStuff.SINGLETON.PlaySound(GlobalStuff.SoundEffect.UIClick);
+
             switch (this.actionType)
             {
                 case ButtonActionType.StartGame:

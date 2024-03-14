@@ -65,7 +65,7 @@ namespace Characters
                     OnGunUnequipped();
                     return;
                 }
-
+                
                 this.gunDistance = value.Value.locationOffset;
                 this.gunRenderer.sprite = value.Value.LoadSprite();
                 OnGunEquipped(value.Value);
@@ -191,17 +191,18 @@ namespace Characters
             OnHealthChanged(oldHealth, this.health);
             AfterDamage(amount, dead);
 
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+
             if (dead)
+            {
+                stuff.PlaySound(Random.Range(0, 1000) == 0 ?
+                    GlobalStuff.SoundEffect.KillAlt :
+                    GlobalStuff.SoundEffect.Kill);
+
                 OnDeath(theDirection);
-        }
-
-        public void SetHP(int hp)
-        {
-            this.maxHealth = hp;
-
-            int oldHealth = this.health;
-            this.health = hp;
-            OnHealthChanged(oldHealth, hp);
+            }
+            else
+                stuff.PlaySound(GlobalStuff.SoundEffect.Hurt);
         }
 
         public void ImpulseVelocity(Vector2 xy) => ImpulseVelocity(xy.x, xy.y);
@@ -267,21 +268,30 @@ namespace Characters
 
             // spawn shell
             Vector2 shellPoint = GlobalPositionAlongGunDirection(shellOffset);
-            GlobalStuff.SINGLETON.CreateShellParticle(shellPoint);
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+            stuff.CreateShellParticle(shellPoint);
 
             // get the shoot point
             Vector2 shootPoint = GlobalPositionAlongGunDirection(shootPointOffset);
 
             if (gun.isHitscan)
             {
-                
+                // no
             }
             else
             {
+                bool delaySounds = gun.projectileCount > 1;
+                
                 for (int i = 0; i < gun.projectileCount; i++)
                 {
                     float deviation = Random.Range(-gun.inaccuracy / 2F, gun.inaccuracy / 2F);
                     float deviatedAngle = angle + deviation;
+                    
+                    if(delaySounds)
+                        stuff.PlaySoundDelayed(GlobalStuff.SoundEffect.Shoot, Random.Range(0F, 0.1F));
+                    else
+                        stuff.PlaySound(GlobalStuff.SoundEffect.Shoot);
+                    
                     SpawnBullet(gun, shootPoint, deviatedAngle, slowdownFactor, ignoreCollider);
                 }
             }

@@ -81,13 +81,16 @@ namespace Characters
             this.interestMax = gun.InterestTime;
             this.interestRemaining = this.interestMax;
 
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+            stuff.PlaySound(GlobalStuff.SoundEffect.GunEquip);
+            
             if (gun.rarity < RarityType.DoubleTake)
                 return;
             if (this.health >= this.maxHealth)
                 return;
 
             int healthGain = (int) gun.rarity - (int) RarityType.Cool;
-            
+            stuff.PlaySound(GlobalStuff.SoundEffect.PickUpHeal);
             
             GlobalStuff.SINGLETON.CreateActionText(
                 this.transform.position + (Vector3)(Vector2.up * 0.15F),
@@ -273,9 +276,10 @@ namespace Characters
         {
             if (!this.Gun.HasValue)
                 return;
+
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
             
-            GlobalStuff effects = GlobalStuff.SINGLETON;
-            if (effects.NoMoreGuns)
+            if (stuff.NoMoreGuns)
             {
                 this.interestRemaining = 0.1F;
                 return;
@@ -299,12 +303,15 @@ namespace Characters
             thrownGun.speed = ThrownGun.SPEED * interest;
             Shake shake = new Shake(1.5F * interest, 20F, 0.3F);
 
-            effects.StartShake(shake);
-            effects.ImpulseCamera(LocalPositionAlongGunDirection(5F * interest));
+            stuff.PlaySound(GlobalStuff.SoundEffect.ThrowGun);
+            stuff.StartShake(shake);
+            stuff.ImpulseCamera(LocalPositionAlongGunDirection(5F * interest));
             this.Gun = null;
-            
+
             if (interest > 0.9F)
-                GlobalStuff.SINGLETON.ActivateBulletTime(1.5F);
+            {
+                stuff.ActivateBulletTime(1.5F);
+            }
         }
         
         private bool isInHitFlash;
