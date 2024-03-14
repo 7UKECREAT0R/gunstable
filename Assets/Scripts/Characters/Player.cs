@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Shooting;
 using UI;
 using UnityEngine;
@@ -17,7 +19,8 @@ namespace Characters
         private float clickWolfTimer;
         private float interestMax;
         private float interestRemaining;
-        
+
+        private ArrowController arrow;
         private Animator animator;
         private bool isMoving;
 
@@ -113,10 +116,48 @@ namespace Characters
             this.ui.HealthDisplay = newValue;
         }
 
+        private void TryArrowStuff(float deltaTime)
+        {
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+            int enemiesLeft = stuff.Enemies;
+
+            if (enemiesLeft == 0)
+            {
+                this.arrow.Enabled = false;
+                return;
+            }
+                
+            IEnumerable<Enemy> enemies = stuff.GetAllEnemiesSnapshot();
+            
+            float leastDistance = 999999F;
+            Vector2 playerPosition = this.transform.position;
+            Enemy closestEnemy = null;
+            
+            foreach (Enemy enemy in enemies)
+            {
+                Vector2 enemyPosition = enemy.transform.position;
+                float distance = Vector2.Distance(playerPosition, enemyPosition);
+                
+                if (!(distance < leastDistance))
+                    continue;
+                
+                closestEnemy = enemy;
+                leastDistance = distance;
+            }
+
+            bool showArrow = enemiesLeft < 4 || leastDistance > 5F;
+            this.arrow.Enabled = showArrow;
+
+            if (showArrow && closestEnemy != null)
+            {
+                this.arrow.Facing = ((Vector2)closestEnemy.transform.position - playerPosition).normalized;
+            }
+        }
         public override void Start()
         {
             base.Start();
             GetComponent<Collider>();
+            this.arrow = GetComponentInChildren<ArrowController>();
             this.cc = GetComponent<Rigidbody2D>();
             this.cam = Camera.main;
             this.animator = GetComponent<Animator>();
@@ -142,6 +183,7 @@ namespace Characters
             if (Game.isPaused)
                 return;
 
+            TryArrowStuff(deltaTime);
             RepositionGun();
             
             Vector2 movementVector = Vector2.zero;

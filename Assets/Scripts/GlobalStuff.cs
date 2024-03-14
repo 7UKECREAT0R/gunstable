@@ -118,7 +118,7 @@ public class GlobalStuff : MonoBehaviour
     }
     public int Enemies => this.enemies.Count;
     public bool NoMoreGuns => !this.droppedItems.Any(item => item.Value is GunItem);
-    private IEnumerable<Enemy> GetAllEnemiesSnapshot()
+    internal IEnumerable<Enemy> GetAllEnemiesSnapshot()
     {
         return this.enemies.Values.ToArray();
     }
