@@ -84,13 +84,12 @@ namespace Worldgen
             );
         }
 
-        private void PopulateRoom(Room room, Character spawner)
+        private void PopulateRoom(Room room, Character spawner, ref bool freeGun)
         {
             GlobalStuff stuff = GlobalStuff.SINGLETON;
 
             // do pickups, if any
-            bool freeGun = !room.shouldSpawnEnemies; // starter room
-            while (freeGun || Random.Range(0, 15) == 0)
+            while (freeGun || Random.Range(0, 6) == 0)
             {
                 freeGun = false;
                 Vector2 position = RandomPointInRoom();
@@ -106,7 +105,7 @@ namespace Worldgen
             // spawn enemies
             Vector2 playerPosition = new Vector2(this.spawnPointX, this.spawnPointY);
             int spawned = 0;
-            while (Random.Range(0, 10) == 0)
+            while (Random.Range(0, 8) == 0)
             {
                 Vector2 position = RandomPointInRoom();
                 float angle;
@@ -147,11 +146,14 @@ namespace Worldgen
         private void PopulateRooms(Character spawner)
         {
             GlobalStuff stuff = GlobalStuff.SINGLETON;
-
+            
             while (stuff.Enemies < this.settings.avgEnemies)
             {
                 foreach (Room room in this.rooms)
-                    PopulateRoom(room, spawner);
+                {
+                    bool freeGun = !room.shouldSpawnEnemies;
+                    PopulateRoom(room, spawner, ref freeGun);
+                }
             }
         }
         
@@ -476,7 +478,7 @@ namespace Worldgen
                 Room roomToApply = remainingRoomsToApply.Pop();
                 ApplyRoom(roomToApply, remainingRoomsToApply);
             }
-
+            
             // draws the tiles array to the unity tilemap
             ApplyTilesToTilemap();
             this.collider.ProcessTilemapChanges();

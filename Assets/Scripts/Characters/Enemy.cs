@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Characters
 {
@@ -23,7 +25,7 @@ namespace Characters
         private const float BULLET_SPEED_MULTIPLIER = 0.3F;
         private const float VISION_CONE = 120F;
         private const float VISION_DISTANCE = 0.5F;
-        private const float LOOK_SPEED = 180F;
+        private const float LOOK_SPEED = 220F;
         private Sprite[] possibleSprites;
         private bool isAlert;
         private Player thePlayer;
@@ -73,8 +75,6 @@ namespace Characters
             this.direction = FromDirection(movement);
             
             SetSpriteForce(this.spriteSheet, this.spriteVariant, this.direction);
-
-            this.Gun = Guns.BasicPistol;
         }
         public void FixedUpdate()
         {
@@ -90,8 +90,10 @@ namespace Characters
             Vector2 directionToPlayer = (this.thePlayer.transform.position - position).normalized;
             float angleToPlayer = Vector2.SignedAngle(Vector2.right, directionToPlayer);
 
+            bool lineOfSight = false;
+            
             // cancel ray cast if out of the view, or already alert
-            if (!this.isAlert && Mathf.Abs(Mathf.DeltaAngle(angleToPlayer, this.GunPointAngle)) < (VISION_CONE / 2F))
+            if (this.isAlert || Mathf.Abs(Mathf.DeltaAngle(angleToPlayer, this.GunPointAngle)) < (VISION_CONE / 2F))
             {
                 int size = Physics2D.RaycastNonAlloc(position, directionToPlayer, this.playerVision, VISION_DISTANCE);
                 for (int i = 0; i < size; i++)
@@ -105,6 +107,7 @@ namespace Characters
                         break; // wall or other non-player object. stop the cast.
 
                     this.isAlert = true;
+                    lineOfSight = true;
                 }
             }
 
@@ -120,6 +123,8 @@ namespace Characters
             SetSprite(this.spriteSheet, this.spriteVariant, direction);
             
             // shoot at player if it can
+            if (!lineOfSight)
+                return;
             if (!this.GunCanShoot || !this.Gun.HasValue)
                 return;
 
@@ -132,8 +137,13 @@ namespace Characters
 
         public override bool IsPlayer => false;
 
+        private bool _isDead;
         protected override void OnDeath(Vector2 incomingDirection)
         {
+            if (this._isDead)
+                return;
+            this._isDead = true;
+            
             bool shouldDropGun = Game.RollDropType();
             if (shouldDropGun)
             {

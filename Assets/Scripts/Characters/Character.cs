@@ -182,8 +182,12 @@ namespace Characters
             if (amount < 1)
                 return;
             if (this.IsPlayer)
+            {
+                if (((Player)this).isInHitFlash)
+                    return;
                 amount = 1; // only take 1 damage at a time
-            
+            }
+
             int oldHealth = this.health;
             this.health -= amount;
             bool dead = this.health < 1;
@@ -280,19 +284,23 @@ namespace Characters
             }
             else
             {
-                bool delaySounds = gun.projectileCount > 1;
+                bool shotgun = gun.projectileCount > 1;
                 
                 for (int i = 0; i < gun.projectileCount; i++)
                 {
                     float deviation = Random.Range(-gun.inaccuracy / 2F, gun.inaccuracy / 2F);
                     float deviatedAngle = angle + deviation;
                     
-                    if(delaySounds)
+                    if(shotgun)
                         stuff.PlaySoundDelayed(GlobalStuff.SoundEffect.Shoot, Random.Range(0F, 0.1F));
                     else
                         stuff.PlaySound(GlobalStuff.SoundEffect.Shoot);
+
+                    float slow = slowdownFactor;
+                    if (shotgun)
+                        slow -= Random.Range(0F, 0.1F);
                     
-                    SpawnBullet(gun, shootPoint, deviatedAngle, slowdownFactor, ignoreCollider);
+                    SpawnBullet(gun, shootPoint, deviatedAngle, slow, ignoreCollider);
                 }
             }
 

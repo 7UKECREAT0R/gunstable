@@ -3,7 +3,7 @@
 /// </summary>
 public static class Guns
 {
-    public static readonly Gun BasicPistol = new(
+    private static readonly Gun BasicPistol = new(
         name: "Basic Pistol",
         damage: 3,
         cooldown: 0.25F,
@@ -82,8 +82,8 @@ public static class Guns
         locationOffset: 0.09F,
         isAuto: false,
         isHitscan: false);
-    
-    public static readonly Gun SuperShotgun = new(
+
+    private static readonly Gun SuperShotgun = new(
         name: "Super Shotgun",
         damage: 2,
         cooldown: 0.5F,
@@ -96,7 +96,7 @@ public static class Guns
         locationOffset: 0.08F,
         isAuto: false,
         isHitscan: false);
-    public static readonly Gun SawedOff = new(
+    private static readonly Gun SawedOff = new(
         name: "Sawed Off",
         damage: 2,
         cooldown: 0.75F,
@@ -109,8 +109,8 @@ public static class Guns
         locationOffset: 0.05F,
         isAuto: false,
         isHitscan: false);
-    
-    public static readonly Gun AssaultRifle = new(
+
+    internal static readonly Gun AssaultRifle = new(
         name: "Assault Rifle",
         damage: 2,
         cooldown: 0.235F,
@@ -123,7 +123,7 @@ public static class Guns
         locationOffset: 0.08F,
         isAuto: true,
         isHitscan: false);
-    public static readonly Gun Uzi = new(
+    private static readonly Gun Uzi = new(
         name: "Uzi",
         damage: 1,
         cooldown: 0.1F,
@@ -136,7 +136,7 @@ public static class Guns
         locationOffset: 0.05F,
         isAuto: true,
         isHitscan: false);
-    public static readonly Gun TommyGun = new(
+    private static readonly Gun TommyGun = new(
         name: "Tommy Gun",
         damage: 3,
         cooldown: 0.2F,
@@ -159,6 +159,9 @@ public static class Guns
         Scopey,
         NailSniper,
         SuperShotgun,
-        SawedOff
+        SawedOff,
+        AssaultRifle,
+        Uzi,
+        TommyGun
     };
 }

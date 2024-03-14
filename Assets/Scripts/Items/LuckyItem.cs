@@ -46,6 +46,7 @@ namespace Items
                 RarityType.Unremarkable.GetColor() * 0.75F, 
                 RarityType.Unremarkable.GetColor() * 0.5F,
                 0.5F, 3F);
+            effects.PlaySound(GlobalStuff.SoundEffect.PickUpHeal);
             OnHoverEnd();
             Game.Collect(this.luckyObject);
             this.ui.UpdateTexts();

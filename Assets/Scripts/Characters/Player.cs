@@ -69,6 +69,7 @@ namespace Characters
             
             if(this.isInHitFlash)
                 StopAllCoroutines();
+            this.isInHitFlash = true;
             StartCoroutine(DoHitFlash());
         }
         protected override void OnGunUnequipped()
@@ -263,7 +264,7 @@ namespace Characters
             }
             // text test keybind
             if (Input.GetKeyDown(KeyCode.F6))
-                this.ui.DisplayInfoString("Your current health is " + this.health + ".", 2.0F, Color.white);
+                this.ui.DisplayInfoString($"Your current health is {this.health}.", 2.0F, Color.white);
             // dmg keybind
             if (Input.GetKeyDown(KeyCode.F8))
                 Damage(1, Vector2.down);
@@ -301,6 +302,7 @@ namespace Characters
             thrownGun.damage = Mathf.RoundToInt(damageFloat);
             thrownGun.angleOfTravel = angle;
             thrownGun.speed = ThrownGun.SPEED * interest;
+            thrownGun.Gun = gun;
             Shake shake = new Shake(1.5F * interest, 20F, 0.3F);
 
             stuff.PlaySound(GlobalStuff.SoundEffect.ThrowGun);
@@ -313,8 +315,8 @@ namespace Characters
                 stuff.ActivateBulletTime(1.5F);
             }
         }
-        
-        private bool isInHitFlash;
+
+        internal bool isInHitFlash;
         private const float HIT_FLASH_SECONDS = 0.1F;
         private IEnumerator DoHitFlash()
         {

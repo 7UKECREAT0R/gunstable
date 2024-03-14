@@ -5,10 +5,13 @@ using UnityEngine.SceneManagement;
 
 namespace UI
 {
+    [RequireComponent(typeof(AudioSource))]
     public class MainMenuButtonDriver : MonoBehaviour
     {
         public ButtonActionType actionType;
+
         
+        private AudioSource audioSource;
         private RectTransform rect;
         private Canvas mainCanvas;
         private RectTransform canvasRect;
@@ -18,8 +21,14 @@ namespace UI
         private static readonly Color textColorNormal = new Color(0.18F, 0.34F, 0.33F);
         private static readonly Color textColorHover = new Color(0.57F, 0.91F, 0.75F);
         
+        public void PlaySound(GlobalStuff.SoundEffect effect)
+        {
+            AudioClip clip = Resources.Load<AudioClip>("Sounds/" + effect);
+            this.audioSource.PlayOneShot(clip);
+        }
         private void Start()
         {
+            this.audioSource = GetComponent<AudioSource>();
             this.mainCanvas = GetComponentInParent<Canvas>();
             this.canvasRect = this.mainCanvas.GetComponent<RectTransform>();
             
@@ -54,12 +63,10 @@ namespace UI
             
             if (buttonRect.Contains(mousePosition))
             {
-                Debug.Log($"Mouse point {mousePosition} fits in rectangle {buttonRect}");
                 if(!this.hovered)
                     OnPointerEnter();
             }
             else {
-                Debug.Log($"Mouse point {mousePosition} does NOT fit in rectangle {buttonRect}");
                 if(this.hovered)
                     OnPointerExit();
             }
@@ -72,21 +79,20 @@ namespace UI
 
         private void OnPointerEnter()
         {
-            GlobalStuff.SINGLETON.PlaySound(GlobalStuff.SoundEffect.UIHover);
-
-            
+            PlaySound(GlobalStuff.SoundEffect.UIHover);
             this.hovered = true;
             this.text.color = textColorHover;
         }
         private void OnPointerExit()
         {
+            PlaySound(GlobalStuff.SoundEffect.UIHover);
             this.hovered = false;
             this.text.color = textColorNormal;
         }
 
         private void OnPointerClick()
         {
-            GlobalStuff.SINGLETON.PlaySound(GlobalStuff.SoundEffect.UIClick);
+            PlaySound(GlobalStuff.SoundEffect.UIClick);
 
             switch (this.actionType)
             {

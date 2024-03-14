@@ -15,7 +15,8 @@ namespace Shooting
                 
                 // set sprite
                 this.gun = value;
-                this.spriteRenderer.sprite = value.LoadSprite();
+                if(this.spriteRenderer != null)
+                    this.spriteRenderer.sprite = value.LoadSprite();
             }
         }
 
@@ -30,6 +31,7 @@ namespace Shooting
         private void Start()
         {
             this.spriteRenderer = GetComponent<SpriteRenderer>();
+            this.spriteRenderer.sprite = this.gun.LoadSprite();
             this.spinDirection = (Random.Range(0, 2) == 1 ? 1F : -1F) + Random.Range(-0.1F, 0.1F);
         }
         protected override void Update()
