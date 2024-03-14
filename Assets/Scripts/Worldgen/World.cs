@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using Characters;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -23,7 +24,7 @@ namespace Worldgen
         private int tilesHeight;
         private bool[,] tiles;
 
-        private Dictionary<TileType, Tile> loadedTiles = new();
+        private readonly Dictionary<TileType, Tile> loadedTiles = new();
         private readonly List<Room> rooms = new();
         private Tilemap tilemap;
         private new TilemapCollider2D collider;
@@ -89,7 +90,7 @@ namespace Worldgen
 
             // do pickups, if any
             bool freeGun = !room.shouldSpawnEnemies; // starter room
-            while (freeGun || Random.Range(0, 7) == 0)
+            while (freeGun || Random.Range(0, 15) == 0)
             {
                 freeGun = false;
                 Vector2 position = RandomPointInRoom();
@@ -105,7 +106,7 @@ namespace Worldgen
             // spawn enemies
             Vector2 playerPosition = new Vector2(this.spawnPointX, this.spawnPointY);
             int spawned = 0;
-            while (Random.Range(0, 4) == 0)
+            while (Random.Range(0, 10) == 0)
             {
                 Vector2 position = RandomPointInRoom();
                 float angle;
@@ -137,7 +138,6 @@ namespace Worldgen
                 upperBound.x += CELL_SIZE;
                 upperBound.y += CELL_SIZE;
                 
-                Debug.DrawLine(lowerBound, upperBound, Color.magenta, 9999F);
                 return new Vector2(
                     Random.Range(lowerBound.x, upperBound.x),
                     Random.Range(lowerBound.y, upperBound.y)
@@ -148,7 +148,7 @@ namespace Worldgen
         {
             GlobalStuff stuff = GlobalStuff.SINGLETON;
 
-            while (stuff.Enemies < this.settings.minimumEnemies)
+            while (stuff.Enemies < this.settings.avgEnemies)
             {
                 foreach (Room room in this.rooms)
                     PopulateRoom(room, spawner);
@@ -325,7 +325,7 @@ namespace Worldgen
                     placer.x = x + OUTER_PADDING;
                     TileType type;
                     bool middleMiddle = this.tiles[x, y];
-
+                    
                     if (!middleMiddle)
                     {
                         bool topLeft = TryIsWall(x - 1, y - 1);
@@ -360,36 +360,58 @@ namespace Worldgen
                 return !this.tiles[x, y];
             }
         }
-        private Room GenerateBranchRoom(Room roomBase)
+        private Room GenerateBranchRoom(Room roomBase, out RoomSide side, out bool deadlocked, RoomSide? offLimits = null)
         {
-            RoomSide side = (RoomSide)Random.Range(0, 4);
-            int locationOnSideAxis = roomBase.GetPropagationCoordinate(side);
-
-            int width = Random.Range(this.settings.roomMinSize, this.settings.roomMaxSize + 1);
-            int height = Random.Range(this.settings.roomMinSize, this.settings.roomMaxSize + 1);
-
-            bool horizontal = side is RoomSide.Top or RoomSide.Bottom;
-            int leeway = this.settings.hallWidth;
-            int slide = horizontal ?
-                Random.Range(-width + leeway, roomBase.width - leeway) :
-                Random.Range(-height + leeway, roomBase.height - leeway);
+            const int DEADLOCK_LIMIT = 50;
+            int attempts = 0;
             
-            return side switch
+            while (true)
             {
-                RoomSide.Left => new Room(width, height,
-                    locationOnSideAxis - width + 1, 
-                    roomBase.y + slide),
-                RoomSide.Right => new Room(width, height,
-                    locationOnSideAxis, 
-                    roomBase.y + slide),
-                RoomSide.Top => new Room(width, height,
-                    roomBase.x + slide,
-                    locationOnSideAxis - height + 1),
-                RoomSide.Bottom => new Room(width, height,
-                    roomBase.x + slide,
-                    locationOnSideAxis),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                side = (RoomSide) Random.Range(0, 4);
+                
+                // there's an off limits direction
+                if (offLimits.HasValue)
+                {
+                    while (side == offLimits.Value)
+                        side = (RoomSide) Random.Range(0, 4);
+                }
+
+                int locationOnSideAxis = roomBase.GetPropagationCoordinate(side);
+
+                int width = Random.Range(this.settings.roomMinSize, this.settings.roomMaxSize + 1);
+                int height = Random.Range(this.settings.roomMinSize, this.settings.roomMaxSize + 1);
+
+                bool horizontal = side is RoomSide.Top or RoomSide.Bottom;
+                int leeway = this.settings.hallWidth;
+                int slide = horizontal ?
+                    Random.Range(-width + leeway, roomBase.width - leeway) :
+                    Random.Range(-height + leeway, roomBase.height - leeway);
+
+                Room toReturn = default;
+                if (side == RoomSide.Left)
+                    toReturn = new Room(width, height, locationOnSideAxis - width + 1, roomBase.y + slide);
+                if (side == RoomSide.Right)
+                    toReturn = new Room(width, height, locationOnSideAxis, roomBase.y + slide);
+                if (side == RoomSide.Top)
+                    toReturn = new Room(width, height, roomBase.x + slide, locationOnSideAxis - height + 1);
+                if (side == RoomSide.Bottom)
+                    toReturn = new Room(width, height, roomBase.x + slide, locationOnSideAxis);
+
+                // check if the room intersects with any existing room
+                if (this.rooms.Any(r => r.Intersects(toReturn)))
+                {
+                    attempts++;
+                    if (attempts > DEADLOCK_LIMIT)
+                    {
+                        deadlocked = true;
+                        return default;
+                    }
+                    continue; // don't generate it, keep trying other variants
+                }
+
+                deadlocked = false;
+                return toReturn;
+            }
         }
         /// <summary>
         /// Regenerate the map with the current <see cref="settings"/>.
@@ -403,12 +425,36 @@ namespace Worldgen
             this.rooms.Add(baseRoom);
 
             Stack<Room> currentRoom = new();
+            RoomSide? disallowedSide = null;
             currentRoom.Push(baseRoom);
             for (int i = 0; i < this.settings.roomCount; i++)
             {
-                Room attachedRoom = GenerateBranchRoom(currentRoom.Peek());
+                Room attachedRoom = GenerateBranchRoom(currentRoom.Peek(), out RoomSide side, out bool deadlocked, disallowedSide);
+
+                if (deadlocked)
+                {
+                    if (currentRoom.Count > 1)
+                    {
+                        // try previous room and make branch
+                        i--;
+                        currentRoom.Pop();
+                        continue;
+                    }
+                    // give up
+                    break;
+                }
+                
                 this.rooms.Add(attachedRoom);
                 currentRoom.Push(attachedRoom);
+                
+                // generating on the opposite side is now off limits
+                disallowedSide = side switch {
+                    RoomSide.Left => RoomSide.Right,
+                    RoomSide.Right => RoomSide.Left,
+                    RoomSide.Top => RoomSide.Bottom,
+                    RoomSide.Bottom => RoomSide.Top,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
             }
             
             Room containing = GetContainingRoom();
@@ -454,15 +500,28 @@ namespace Worldgen
             // populate rooms with LOOT & ENEMIES
             PopulateRooms(player);
         }
-        
+
+        public void ResetAndRegenerate()
+        {
+            if (this.settings.sheet != Game.worldGenerationSettings.sheet)
+            {
+                // reload world tileset
+                this.settings = Game.worldGenerationSettings;
+                LoadTilesetData();
+            }
+            else
+                this.settings = Game.worldGenerationSettings;
+            
+            Regenerate();
+        }
         private void Start()
         {
             this.tilemap = GetComponent<Tilemap>();
             this.collider = GetComponent<TilemapCollider2D>();
-            
+
             this.settings = Game.worldGenerationSettings;
             LoadTilesetData();
-
+            
             StartCoroutine(StartLater());
         }
         private IEnumerator StartLater()
@@ -504,13 +563,13 @@ namespace Worldgen
         /// <summary>
         /// The minimum number of enemies allowed to spawn.
         /// </summary>
-        public int minimumEnemies;
+        public int avgEnemies;
         /// <summary>
         /// The sprite sheet to use for the enemies in this world.
         /// </summary>
         public Enemy.SpriteSheet enemySpriteSheet;
 
-        public WorldgenSettings(WorldSpriteSheet sheet, int roomMinSize, int roomMaxSize, int roomCount, int hallWidth, Enemy.SpriteSheet enemySpriteSheet, int minimumEnemies)
+        public WorldgenSettings(WorldSpriteSheet sheet, int roomMinSize, int roomMaxSize, int roomCount, int hallWidth, Enemy.SpriteSheet enemySpriteSheet, int avgEnemies)
         {
             Assert.IsFalse(hallWidth > roomMinSize, "Hall width cannot be larger than minimum room size.");
             Assert.IsFalse(roomMinSize > roomMaxSize, "Minimum room size cannot be larger than the maxiumu room size.");
@@ -521,7 +580,7 @@ namespace Worldgen
             this.roomCount = roomCount;
             this.hallWidth = hallWidth;
             this.enemySpriteSheet = enemySpriteSheet;
-            this.minimumEnemies = minimumEnemies;
+            this.avgEnemies = avgEnemies;
         }
     }
     public enum RoomSide
@@ -566,6 +625,11 @@ namespace Worldgen
                 RoomSide.Bottom => this.Bottom + 2,
                 _ => throw new ArgumentOutOfRangeException(nameof(side), side, null)
             };
+        }
+        public bool Intersects(Room other)
+        {
+            return this.Left - 1 < other.Right + 1 && this.Right + 1 > other.Left - 1 && 
+                   this.Top - 1 < other.Bottom + 1 && this.Bottom + 1 > other.Top - 1;
         }
         public override string ToString()
         {

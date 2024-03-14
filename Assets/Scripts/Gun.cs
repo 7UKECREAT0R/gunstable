@@ -77,7 +77,6 @@ public struct Gun
     /// <summary>
     /// Create a new Gun definition.
     /// </summary>
-    /// <param name="rarity">The rarity of the gun.</param>
     /// <param name="name">The name of the gun.</param>
     /// <param name="isAuto">Fire while the mouse is held?</param>
     /// <param name="isHitscan">Does weapon use ray instead of firing projectiles?</param>
@@ -90,11 +89,11 @@ public struct Gun
     /// <param name="shootPointOffset">The offset (+ is forward) the barrel is located on this gun sprite.</param>
     /// <param name="locationOffset">The offset (+ is forward) the gun should be located relative to the player.</param>
     /// <param name="kickback">The distance to kick the player and gun back on shoot.</param>
-    public Gun(RarityType rarity, string name, bool isAuto, bool isHitscan,
+    public Gun(string name, bool isAuto, bool isHitscan,
         float cooldown, float inaccuracy, int projectileCount, float projectileSpeed, int damage,
         string sprite, float shootPointOffset, float locationOffset, float kickback)
     {
-        this.rarity = rarity;
+        this.rarity = RarityType.Unremarkable;
         this.name = name;
         this.isAuto = isAuto;
         this.isHitscan = isHitscan;

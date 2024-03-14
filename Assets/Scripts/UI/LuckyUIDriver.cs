@@ -45,9 +45,13 @@ namespace UI
 
         private void Start()
         {
+            UpdateTexts();
+        }
+        public void UpdateTexts()
+        {
             StartCoroutine(UpdateTextsLater());
         }
-        public IEnumerator UpdateTextsLater()
+        private IEnumerator UpdateTextsLater()
         {
             yield return new WaitForFixedUpdate();
             this.Clovers = Game.GetCount(LuckyObject.Clover);

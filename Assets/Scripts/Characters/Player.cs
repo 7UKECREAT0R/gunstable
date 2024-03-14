@@ -26,7 +26,6 @@ namespace Characters
         private bool lastIsMoving;
         private Camera cam;
         private UIDriver ui;
-        private new Collider collider;
 
         /// <summary>
         /// Look towards the given direction. Returns the un-normalized direction from the player to the given location.
@@ -56,8 +55,9 @@ namespace Characters
         
         protected override void OnDeath(Vector2 incomingDirection)
         {
-            Game.Reset();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
+            stuff.ActivateDeath(incomingDirection);
+            
         }
         protected override void AfterDamage(int damageAmount, bool died)
         {
@@ -88,6 +88,7 @@ namespace Characters
 
             int healthGain = (int) gun.rarity - (int) RarityType.Cool;
             
+            
             GlobalStuff.SINGLETON.CreateActionText(
                 this.transform.position + (Vector3)(Vector2.up * 0.15F),
                 "COOL! +" + healthGain,
@@ -111,7 +112,7 @@ namespace Characters
         public override void Start()
         {
             base.Start();
-            this.collider = GetComponent<Collider>();
+            GetComponent<Collider>();
             this.cc = GetComponent<Rigidbody2D>();
             this.cam = Camera.main;
             this.animator = GetComponent<Animator>();
@@ -176,7 +177,7 @@ namespace Characters
             {
                 // this still lets you "feel" the bullet time, but
                 // you still get the benefits of being in it.
-                float adjustedScale = Mathf.Lerp(Time.timeScale, 1F, 0.5F);
+                float adjustedScale = Mathf.Lerp(Time.timeScale, 1F, 0.25F);
                 movementVector /= adjustedScale;
             }
 
@@ -193,6 +194,8 @@ namespace Characters
             Vector2 facing = mousePosition - (Vector2) this.transform.position;
             float angle = Vector2.SignedAngle(Vector2.right, facing);
             this.GunPointAngle = angle;
+            
+            GlobalStuff stuff = GlobalStuff.SINGLETON;
             
             // interest ticking
             if (this.HasGun)
@@ -243,20 +246,25 @@ namespace Characters
             
             // random roll keybind
             if (Input.GetKeyDown(KeyCode.F3))
-            {
                 SpawnGunPickup(mousePosition, Game.RollGun());
-            }
+            // random enemy keybind
             if (Input.GetKeyDown(KeyCode.F4))
             {
-                GlobalStuff stuff = GlobalStuff.SINGLETON;
                 stuff.SpawnEnemy(mousePosition, 20, angle, Enemy.SpriteSheet.chef);
             }
+            // regen world keybind
             if (Input.GetKeyDown(KeyCode.F5))
             {
                 World world = FindObjectOfType<World>();
                 world.Regenerate();
             }
-
+            // text test keybind
+            if (Input.GetKeyDown(KeyCode.F6))
+                this.ui.DisplayInfoString("Your current health is " + this.health + ".", 2.0F, Color.white);
+            // dmg keybind
+            if (Input.GetKeyDown(KeyCode.F8))
+                Damage(1, Vector2.down);
+            
             // throwing gun
             if (Input.GetKeyDown(KeyCode.E))
                 TryThrowGun(angle);
@@ -266,16 +274,23 @@ namespace Characters
             if (!this.Gun.HasValue)
                 return;
             
+            GlobalStuff effects = GlobalStuff.SINGLETON;
+            if (effects.NoMoreGuns)
+            {
+                this.interestRemaining = 0.1F;
+                return;
+            }
+
             Gun gun = this.Gun.Value;
 
             GameObject thrownObject = Instantiate(this.thrownGunPrefab);
             thrownObject.transform.position = GlobalPositionAlongGunDirection(gun.locationOffset);
             thrownObject.transform.rotation = Quaternion.Euler(0F, 0F, angle);
-            
+
             ThrownGun thrownGun = thrownObject.GetComponent<ThrownGun>();
             const float BASE_DAMAGE_MULTIPLIER = 2.0F;
             float interest = 1F - this.interestRemaining / this.interestMax;
-            
+
             float projectileMultiplier = gun.isHitscan ? 1.0F : gun.projectileCount;
             float damageFloat = BASE_DAMAGE_MULTIPLIER * gun.Damage * projectileMultiplier * Game.ThrownWeaponMultiplier * interest;
             thrownGun.ignoreTag = this.gameObject.tag;
@@ -283,8 +298,7 @@ namespace Characters
             thrownGun.angleOfTravel = angle;
             thrownGun.speed = ThrownGun.SPEED * interest;
             Shake shake = new Shake(1.5F * interest, 20F, 0.3F);
-            
-            GlobalStuff effects = GlobalStuff.SINGLETON;
+
             effects.StartShake(shake);
             effects.ImpulseCamera(LocalPositionAlongGunDirection(5F * interest));
             this.Gun = null;

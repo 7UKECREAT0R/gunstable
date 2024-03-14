@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Worldgen\TileType.cs" />
     <Compile Include="Assets\Scripts\Gun.cs" />
+    <Compile Include="Assets\Scripts\UI\MainMenuButtonDriver.cs" />
     <Compile Include="Assets\Scripts\Guns.cs" />
     <Compile Include="Assets\Scripts\UI\UIDriver.cs" />
     <Compile Include="Assets\Scripts\Characters\Character.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Assets\Scripts\UI\GunPopup.cs" />
     <Compile Include="Assets\Scripts\Items\LuckyItem.cs" />
     <Compile Include="Assets\Scripts\Shooting\ThrownGun.cs" />
+    <Compile Include="Assets\Scripts\UI\MainMenuDriver.cs" />
     <Compile Include="Assets\Scripts\Game.cs" />
     <Compile Include="Assets\Scripts\GlobalStuff.cs" />
     <Compile Include="Assets\Scripts\UI\LuckyUIDriver.cs" />

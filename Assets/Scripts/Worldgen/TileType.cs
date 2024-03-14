@@ -38,19 +38,25 @@
         public static TileType GetTileType(bool middleLeft, bool topMiddle, bool middleRight, bool bottomMiddle,
             bool bottomLeft, bool bottomRight, bool topLeft, bool topRight)
         {
+            // lonesome edges
+            if (!middleLeft && !middleRight)
+                return TileType.Ceiling;
+            if (!topMiddle && !bottomMiddle)
+                return TileType.Ceiling;
+            
             switch (topMiddle)
             {
                 case true when bottomMiddle && middleLeft && !middleRight:
                     return TileType.EdgeLeft;
-                case true when bottomMiddle && !middleLeft && middleRight:
+                case true when bottomMiddle && !middleLeft:
                     return TileType.EdgeRight;
                 case true when !bottomMiddle && middleLeft && middleRight:
                     return TileType.EdgeTop;
-                case false when bottomMiddle && middleLeft && middleRight:
+                case false when middleLeft && middleRight:
                     return TileType.EdgeBottom;
             }
 
-            int coveredCorners = (bottomRight?1:0) + (bottomLeft?1:0) + (topLeft?1:0) + (topRight?1:0);
+            int coveredCorners = (bottomRight ? 1 : 0) + (bottomLeft ? 1 : 0) + (topLeft ? 1 : 0) + (topRight ? 1 : 0);
 
             if (coveredCorners == 1)
             {
@@ -64,7 +70,7 @@
                     return TileType.StubTopLeft;
             }
 
-            if (!middleLeft || !middleRight || !topMiddle)
+            if (!middleLeft || !middleRight)
                 return TileType.Ceiling;
 
             if (coveredCorners != 3)

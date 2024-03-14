@@ -8,6 +8,7 @@ public class Cursor : MonoBehaviour
     private const float MOVEMENT_LIMIT = 1.0f;
     
     private Camera cam;
+    private GlobalStuff stuff;
     public Player player;
     
     [HideInInspector]
@@ -21,9 +22,12 @@ public class Cursor : MonoBehaviour
     {
         UnityEngine.Cursor.visible = Game.isPaused;
         UnityEngine.Cursor.lockState = Game.isPaused ? CursorLockMode.None : CursorLockMode.Confined;
-        
+
         this.cursorLocation = this.cam.ScreenToWorldPoint(Input.mousePosition);
         this.transform.position = this.cursorLocation;
+
+        if (GlobalStuff.SINGLETON.stopCameraMoving)
+            return;
         
         Vector2 diff = this.player.LookTowards(this.cursorLocation);
         diff /= MOVEMENT_DIVISOR;

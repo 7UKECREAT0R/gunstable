@@ -1,4 +1,5 @@
 ﻿using System;
+using Characters;
 using Worldgen;
 using Random = UnityEngine.Random;
 
@@ -49,14 +50,14 @@ public static class Game
             case 1:
                 worldGenerationSettings = WORLD_PRESET_KITCHEN;
                 worldGenerationSettings.roomCount += 10;
-                worldGenerationSettings.minimumEnemies += 3;
+                worldGenerationSettings.avgEnemies += 3;
                 break;
             case 2:
                 worldGenerationSettings = WORLD_PRESET_KITCHEN;
                 worldGenerationSettings.roomMinSize += 2;
                 worldGenerationSettings.roomMaxSize += 4;
                 worldGenerationSettings.roomCount += 20;
-                worldGenerationSettings.minimumEnemies += 6;
+                worldGenerationSettings.avgEnemies += 6;
                 break;
             case 3:
                 worldGenerationSettings = WORLD_PRESET_CAVE;
@@ -64,14 +65,14 @@ public static class Game
             case 4:
                 worldGenerationSettings = WORLD_PRESET_CAVE;
                 worldGenerationSettings.roomCount += 5;
-                worldGenerationSettings.minimumEnemies += 5;
+                worldGenerationSettings.avgEnemies += 5;
                 break;
             case 5:
                 worldGenerationSettings = WORLD_PRESET_CAVE;
                 worldGenerationSettings.roomMinSize += 2;
                 worldGenerationSettings.roomMaxSize += 4;
                 worldGenerationSettings.roomCount += 10;
-                worldGenerationSettings.minimumEnemies += 10;
+                worldGenerationSettings.avgEnemies += 10;
                 break;
             case 6:
                 worldGenerationSettings = WORLD_PRESET_WHITE_HOUSE;
@@ -79,14 +80,14 @@ public static class Game
             case 7:
                 worldGenerationSettings = WORLD_PRESET_WHITE_HOUSE;
                 worldGenerationSettings.roomCount += 20;
-                worldGenerationSettings.minimumEnemies += 10;
+                worldGenerationSettings.avgEnemies += 10;
                 break;
             case 8:
                 worldGenerationSettings = WORLD_PRESET_WHITE_HOUSE;
                 worldGenerationSettings.roomMinSize += 1;
                 worldGenerationSettings.roomMaxSize += 2;
                 worldGenerationSettings.roomCount += 40;
-                worldGenerationSettings.minimumEnemies += 15;
+                worldGenerationSettings.avgEnemies += 15;
                 break;
             default:
             {
@@ -99,7 +100,7 @@ public static class Game
                     _ => throw new Exception("what?")
                 };
                 worldGenerationSettings.roomCount += 3 * level;
-                worldGenerationSettings.minimumEnemies += 2 * level;
+                worldGenerationSettings.avgEnemies += 2 * level;
                 break;
             }
         }
@@ -108,33 +109,37 @@ public static class Game
     private static readonly WorldgenSettings WORLD_PRESET_KITCHEN = new()
     {
         sheet = WorldSpriteSheet.kitchen,
+        enemySpriteSheet = Enemy.SpriteSheet.chef,
         roomMinSize = 5,
         roomMaxSize = 9,
         roomCount = 20,
         hallWidth = 3,
-        minimumEnemies = 10
+        avgEnemies = 5
     };
     private static readonly WorldgenSettings WORLD_PRESET_CAVE = new()
     {
         sheet = WorldSpriteSheet.cave,
+        enemySpriteSheet = Enemy.SpriteSheet.thug,
         roomMinSize = 12,
         roomMaxSize = 24,
         roomCount = 10,
         hallWidth = 8,
-        minimumEnemies = 15
+        avgEnemies = 10
     };
     private static readonly WorldgenSettings WORLD_PRESET_WHITE_HOUSE = new()
     {
         sheet = WorldSpriteSheet.white_house,
+        enemySpriteSheet = Enemy.SpriteSheet.official,
         roomMinSize = 6,
         roomMaxSize = 9,
         roomCount = 40,
         hallWidth = 2,
-        minimumEnemies = 20
+        avgEnemies = 15
     };
 
     public static WorldgenSettings worldGenerationSettings = WORLD_PRESET_KITCHEN;
     public static bool isPaused;
+    public static bool isAlive;
     
     private static int luckyClovers;
     private static int luckyRocks;
@@ -159,7 +164,7 @@ public static class Game
     /// <summary>
     /// The amount of seconds of bullet-time you get per kill.
     /// </summary>
-    public static float BulletTimePerKill => 0.5F * luckySandbags;
+    public static float BulletTimePerKill => 0.25F * luckySandbags;
     /// <summary>
     /// The bonus multiplier to apply to the player's shooting speed.
     /// </summary>
@@ -231,19 +236,24 @@ public static class Game
             LuckyObject.Clover => "Rolls weapon rarity an extra time for each clover. Chooses the best result.",
             LuckyObject.Rock => "Increases the damage of thrown weapons [E] by 50% for each rock.",
             LuckyObject.Spring => "Increases item pickup range for every spring. You will dash towards items that are further away.",
-            LuckyObject.Sandbag => "Grants half a second of bullet time on kill for each sandbag.",
+            LuckyObject.Sandbag => "Grants 0.25 seconds of bullet time on kill for each sandbag.",
             LuckyObject.Ring => "Increases shooting speed by 20% for each ring.",
             _ => throw new ArgumentOutOfRangeException(nameof(luckyObject), luckyObject, null)
         };
     }
     public static void Reset()
     {
+        isAlive = true;
         isPaused = false;
         luckyClovers = 0;
         luckyRocks = 0;
         luckySprings = 0;
         luckySandbags = 0;
         luckyRings = 0;
+        UnityEngine.Time.timeScale = 1F;
+
+        level = -1;
+        IncrementLevel();
     }
 }
 public enum LuckyObject

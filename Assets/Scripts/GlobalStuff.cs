@@ -1,17 +1,21 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Characters;
 using Items;
 using UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using Worldgen;
 using Random = UnityEngine.Random;
 
-[RequireComponent(typeof(Camera))]
+[RequireComponent(typeof(Camera), typeof(AudioSource))]
 public class GlobalStuff : MonoBehaviour
 {
     public static GlobalStuff SINGLETON;
-    
+
+    private AudioSource audioSource;
     private UIDriver ui;
     
     public GameObject playerPrefab;
@@ -40,6 +44,7 @@ public class GlobalStuff : MonoBehaviour
     }
 
     private const float cameraVelocityDrag = 10F;
+    internal bool stopCameraMoving;
     private float cameraVelocityX;
     private float cameraVelocityY;
     private readonly List<Shake> cameraShakes = new();
@@ -84,7 +89,11 @@ public class GlobalStuff : MonoBehaviour
     {
         GameObject enemyObject = Instantiate(this.enemyPrefab);
         enemyObject.transform.position = position;
-
+        
+        Collider2D enemyCollider = enemyObject.GetComponent<Collider2D>();
+        Collider2D playerCollider = FindObjectOfType<Player>().gameObject.GetComponent<Collider2D>();
+        Physics2D.IgnoreCollision(playerCollider, enemyCollider);
+        
         Enemy enemy = enemyObject.GetComponent<Enemy>();
         enemy.GunPointAngle = angle;
         enemy.health = health;
@@ -95,12 +104,20 @@ public class GlobalStuff : MonoBehaviour
         this.enemies[enemy.GetInstanceID()] = enemy;
         UpdateEnemyUIText();
     }
-    public void RemoveEnemy(Enemy enemy)
+    public void RemoveEnemy(Enemy enemy, bool dueToKill)
     {
         this.enemies.Remove(enemy.GetInstanceID());
+
+        if (this.enemies.Count == 0 && dueToKill)
+        {
+            // the level has been cleared of all enemies.
+            ActivateLevelCompletion();
+        }
+        
         UpdateEnemyUIText();
     }
     public int Enemies => this.enemies.Count;
+    public bool NoMoreGuns => !this.droppedItems.Any(item => item.Value is GunItem);
     private IEnumerable<Enemy> GetAllEnemiesSnapshot()
     {
         return this.enemies.Values.ToArray();
@@ -127,10 +144,18 @@ public class GlobalStuff : MonoBehaviour
     {
         SINGLETON = this;
         this.ui = FindObjectOfType<UIDriver>();
+        this.audioSource = GetComponent<AudioSource>();
+        Time.timeScale = 1.0F;
+        
+        StartCoroutine(DoLevelDescriptionLater());
     }
     private void Update()
     {
         float deltaTime = Time.deltaTime;
+
+        if (!this.stopCameraMoving)
+            return;
+        
         Transform change = this.transform;
         Vector3 position = change.localPosition;
         
@@ -152,18 +177,32 @@ public class GlobalStuff : MonoBehaviour
         change.localPosition = position;
     }
 
-    private bool isInBulletTime = false;
+    private Coroutine bulletTimeCoroutine;
+    private Coroutine levelCompletionCoroutine;
+    private Coroutine deathCoroutine;
 
     public void ActivateBulletTime(float lengthMultiplier)
     {
-        if(this.isInBulletTime)
-            StopAllCoroutines();
-        StartCoroutine(DoBulletTime(Game.BulletTimePerKill * lengthMultiplier));
+        if(this.bulletTimeCoroutine != null)
+            StopCoroutine(this.bulletTimeCoroutine);
+        this.bulletTimeCoroutine = StartCoroutine(DoBulletTime(Game.BulletTimePerKill * lengthMultiplier));
     }
+    public void ActivateLevelCompletion()
+    {
+        if(this.levelCompletionCoroutine != null)
+            StopCoroutine(this.levelCompletionCoroutine);
+        this.levelCompletionCoroutine = StartCoroutine(LevelCompletion());
+    }
+    public void ActivateDeath(Vector2 bloodDirection)
+    {
+        if(this.deathCoroutine != null)
+            StopCoroutine(this.deathCoroutine);
+        this.deathCoroutine = StartCoroutine(Death(bloodDirection));
+    }
+    
     private IEnumerator DoBulletTime(float amount)
     {
         const float TRANSITION_TIME = 0.1F;
-        this.isInBulletTime = true;
 
         yield return TransitionFrom(1.0F, Game.bulletTimeSlowness);
         Time.timeScale = Game.bulletTimeSlowness;
@@ -172,8 +211,8 @@ public class GlobalStuff : MonoBehaviour
         
         yield return TransitionFrom(Game.bulletTimeSlowness, 1.0F);
         Time.timeScale = 1.0F;
-        this.isInBulletTime = false;
-        
+
+        this.bulletTimeCoroutine = null;
         yield break;
 
         IEnumerator TransitionFrom(float timeA, float timeB)
@@ -187,6 +226,74 @@ public class GlobalStuff : MonoBehaviour
                 time += Time.unscaledDeltaTime;
             }
         }
+    }
+    private IEnumerator LevelCompletion()
+    {
+        const float WAIT_TIME = 1.5F;
+        Player player = FindObjectOfType<Player>();
+        World worldGen = FindObjectOfType<World>();
+        
+        CreateActionText(player.transform.position, "LEVEL CLEAR!",
+            new Color(1F, 0.1F, 0.4F),
+            new Color(1F, 0.4F, 0.6F),
+            1F);
+        
+        yield return new WaitForSeconds(WAIT_TIME);
+        
+        Game.IncrementLevel();
+        worldGen.ResetAndRegenerate();
+        StartCoroutine(DoLevelDescriptionLater());
+    }
+    private IEnumerator Death(Vector2 bloodDirection)
+    {
+        const float WAIT_TIME = 3.0F;
+        
+        Player player = FindObjectOfType<Player>();
+        Camera camera = player.GetComponentInChildren<Camera>();
+        Vector2 origin = player.transform.position;
+        
+        Time.timeScale = 0.4F;
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject bloodParticle = Instantiate(this.bloodParticlePrefab);
+            bloodParticle.transform.position = origin;
+            bloodParticle.transform.forward = bloodDirection;
+        }
+
+        camera.transform.SetParent(null, true);
+        this.stopCameraMoving = true;
+        
+        player.gameObject.SetActive(false);
+
+        yield return new WaitForSecondsRealtime(0.5F);
+        string blip = Random.Range(0, 5) switch
+        {
+            0 => "YOU CAN DO BETTER.",
+            1 => "MAYBE NEXT TIME..?",
+            2 => "THAT WAS UNFAIR.",
+            3 => "SEE 'GUIDE' ON THE MAIN MENU.",
+            4 => "MAYBE TRY ABILITY WARS INSTEAD.",
+            _ => "what???"
+        };
+        
+        this.ui.DisplayInfoString(blip, 5F, Color.red);
+        
+        yield return new WaitForSecondsRealtime(WAIT_TIME);
+        
+        Game.Reset();
+        SceneManager.LoadScene("MainMenu");
+    }
+    private IEnumerator DoLevelDescriptionLater()
+    {
+        const float DURATION = 4.0F;
+        
+        yield return new WaitForSecondsRealtime(0.5F);
+
+        string levelSheetName = Game.worldGenerationSettings.sheet
+            .ToString()
+            .Replace('_',  ' ');
+        string levelDescription = $"{Game.level + 1} - {levelSheetName}";
+        this.ui.DisplayInfoString(levelDescription, DURATION, new Color(0.96F, 1F, 0.91F));
     }
 }
 

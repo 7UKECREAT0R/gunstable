@@ -272,7 +272,10 @@ namespace Characters
             // get the shoot point
             Vector2 shootPoint = GlobalPositionAlongGunDirection(shootPointOffset);
 
-            if (gun.isHitscan) { }
+            if (gun.isHitscan)
+            {
+                
+            }
             else
             {
                 for (int i = 0; i < gun.projectileCount; i++)
@@ -288,7 +291,11 @@ namespace Characters
             Vector2 knockbackVector = LocalPositionAlongGunDirection(kickback);
             ImpulseVelocity(knockbackVector);
             this.GunDistanceOffset = kickback;
-            this.shootCooldown = gun.Cooldown;
+            
+            if(this.IsPlayer)
+                this.shootCooldown = gun.Cooldown * (1 / Game.ShootSpeedBonus);
+            else
+                this.shootCooldown = gun.Cooldown;
         }
 
         /// <summary>

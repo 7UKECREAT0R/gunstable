@@ -10,7 +10,7 @@ namespace Characters
         {
             chef = 0,
             thug = 1,
-            politician = 2
+            official = 2
         }
         public enum SpriteVariant
         {
@@ -20,8 +20,8 @@ namespace Characters
         }
         
         private readonly RaycastHit2D[] playerVision = new RaycastHit2D[20];
-        private const float BULLET_SPEED_MULTIPLIER = 0.5F;
-        private const float VISION_CONE = 100F;
+        private const float BULLET_SPEED_MULTIPLIER = 0.3F;
+        private const float VISION_CONE = 120F;
         private const float VISION_DISTANCE = 0.5F;
         private const float LOOK_SPEED = 180F;
         private Sprite[] possibleSprites;
@@ -31,7 +31,7 @@ namespace Characters
         public SpriteSheet spriteSheet;
         public SpriteVariant spriteVariant;
 
-        public void SetSprite(SpriteSheet sheet, SpriteVariant variant, LookDirection direction)
+        private void SetSprite(SpriteSheet sheet, SpriteVariant variant, LookDirection direction)
         {
             // reload sprite sheet if needed
             if (this.possibleSprites == null || this.spriteSheet != sheet)
@@ -50,7 +50,7 @@ namespace Characters
             this.direction = direction;
             this.spriteRenderer.sprite = this.possibleSprites[(int)this.spriteVariant * 4 + (int)this.direction];
         }
-        public void SetSpriteForce(SpriteSheet sheet, SpriteVariant variant, LookDirection direction)
+        private void SetSpriteForce(SpriteSheet sheet, SpriteVariant variant, LookDirection direction)
         {
             // reload sprite sheet if needed
             if (this.possibleSprites == null || this.spriteSheet != sheet)
@@ -78,6 +78,9 @@ namespace Characters
         }
         public void FixedUpdate()
         {
+            this.velocityX = 0;
+            this.velocityY = 0;
+            
             if (Game.isPaused)
                 return;
             
@@ -148,7 +151,7 @@ namespace Characters
             bloodParticles.transform.position = this.transform.position;
             bloodParticles.transform.forward = incomingDirection;
             stuff.ActivateBulletTime(1F);
-            stuff.RemoveEnemy(this);
+            stuff.RemoveEnemy(this, true);
             Destroy(this.gameObject);
         }
         protected override void AfterDamage(int damageAmount, bool died)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +11,7 @@ namespace UI
     {
         public GameObject pauseMenu;
         public InterestMeterDriver interestMeter;
-        public LuckyUIDriver luckyObjects;
+        public TMP_Text infoText;
         public TextWiggle enemiesLeftText;
         public bool shaking;
 
@@ -65,6 +66,37 @@ namespace UI
         public bool PauseMenuIsVisible
         {
             set => this.pauseMenu.SetActive(value);
+        }
+
+        private const float INFO_PER_CHAR_DELAY = 0.02F;
+        private Coroutine infoStringCoroutine;
+        public void DisplayInfoString(string text, float duration, Color color)
+        {
+            if(this.infoStringCoroutine != null)
+                StopCoroutine(this.infoStringCoroutine);
+            this.infoText.color = color;
+            this.infoStringCoroutine = StartCoroutine(InfoStringAsync(text, duration));
+        }
+        private IEnumerator InfoStringAsync(string text, float duration)
+        {
+            for (int i = 0; i <= text.Length; i++)
+            {
+                string substr = text[..i];
+                this.infoText.text = substr;
+                yield return new WaitForSeconds(INFO_PER_CHAR_DELAY);
+            }
+
+            yield return new WaitForSeconds(duration);
+            
+            for (int i = text.Length; i > 0; i--)
+            {
+                string substr = text[..i];
+                this.infoText.text = substr;
+                yield return new WaitForSeconds(INFO_PER_CHAR_DELAY);
+            }
+
+            this.infoText.text = string.Empty;
+            this.infoStringCoroutine = null;
         }
         
         private void Update()

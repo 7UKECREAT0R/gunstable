@@ -121,7 +121,7 @@ namespace Items
             float playerDistance = Vector2.Distance(itemPosition, playerPosition);
 
             bool canPickup =
-                mouseDistance < Game.defaultPickupRange &&
+                mouseDistance < 0.135F &&
                 playerDistance < Game.WeaponPickupRange;
             
             SetHoveredState(canPickup);
@@ -138,6 +138,7 @@ namespace Items
 
         private void OnDestroy()
         {
+            OnHoverEnd();
             GlobalStuff stuff = GlobalStuff.SINGLETON;
             stuff.droppedItems.Remove(this.gameObject.GetInstanceID());
         }

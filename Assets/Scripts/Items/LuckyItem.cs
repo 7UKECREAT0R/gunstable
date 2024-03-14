@@ -46,10 +46,9 @@ namespace Items
                 RarityType.Unremarkable.GetColor() * 0.75F, 
                 RarityType.Unremarkable.GetColor() * 0.5F,
                 0.5F, 3F);
-
             OnHoverEnd();
             Game.Collect(this.luckyObject);
-            this.ui.UpdateTextsLater();
+            this.ui.UpdateTexts();
             Destroy(this.gameObject);
         }
         
